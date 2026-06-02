@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Dynamic iframe source</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<style>
+#clock {
+  position: fixed;
+  top: 10px;
+  right: 20px;
+  color: white; /* Matches your dark theme */
+  font-family: 'Roboto Mono', monospace;
+  font-size: 2rem;
+  z-index: 1000; /* Keeps it above other elements */
+}
+
+
+#bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    body {
+      background: linear-gradient(135deg, #020024, #000a45, #020024);
+      margin: 0;
+      padding-top: 160px;
+      font-family: "Roboto Mono", monospace;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      /* Set a valid weight */
+      font-style: normal;
+      font-size: 10px;
+      overflow-y: scroll;
+      /* Adjust this value to make the font smaller */
+    }
+
+    img {
+      position: fixed;
+      width: 100%;
+      height: 115px;
+      left: 0;
+      top: 0;
+      box-shadow: 0 6px 24px rgba(255, 255, 255, 0.34);
+      z-index: 1;
+    }
+
+    .bolder {
+      color: #ffffff;
+      position: fixed;
+      top: 40px;
+      left: 20px;
+      font-size: 52px;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(100, 150, 255, 0.8);
+      z-index: 2;
+    }
+
+    h1 {
+      color: #ffffff;
+      border: 4px solid #000;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 12px rgba(0, 120, 255, 0.5);
+      font-size: 30px;
+      /* Adjust this value to make the font smaller */
+    }
+
+    h2 {
+      color: #e6ecff;
+      border: 4px solid #000;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 20px;
+      /* Adjust this value to make the font smaller */
+    }
+
+    .redirect-button {
+      position: fixed;
+      right: 20px;
+      top: 45%;
+      transform: translateY(-50%);
+      padding: 14px 26px;
+      background: linear-gradient(135deg, #1e90ff, #0047ab);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 20px;
+      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+    }
+
+    #redirect-button2 {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 14px 26px;
+      background: linear-gradient(133deg, rgb(0, 38, 255), rgba(136, 2, 173, 0.516));
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 25px;
+      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+    }
+
+    .redirect-button3 {
+      position: fixed;
+      right: 20px;
+      top: 90%;
+      transform: translateY(-50%);
+      padding: 14px 26px;
+      background: linear-gradient(135deg, #fff01eff, #ab0000ff);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 16px;
+      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+    }
+
+    .redirect-button:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 0 22px rgba(0, 180, 255, 0.9);
+    }
+
+    input,
+    select,
+    button {
+      color: black;
+      background-color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 1px;
+      font-size: 16px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffffff, #dfe6ff);
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #ffffff, #bcd0ff);
+    }
+
+    iframe {
+      box-shadow: 0 0 20px rgba(0, 120, 255, 0.4);
+      border-radius: 8px;
+      width: 100%;
+      height: 100px;
+    }
+
+    p {
+      color: #ffffff;
+      font-style: italic;
+    }
+
+    option {
+      font-family: "Roboto Mono", monospace;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      /* Set a valid weight */
+      font-style: normal;
+      image-rendering: pixelated;
+      /* Ensures images are pixelated */
+      text-rendering: geometricPrecision;
+      /* Improves text rendering */
+    }
+
+    .select,
+    input,
+    button,
+    body,
+    h1,
+    h2,
+    p {
+      font-family: "Roboto Mono", monospace;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      /* Set a valid weight */
+      font-style: normal;
+      overflow-y: auto;
+    }
+
+    /* Dev menu styles */
+    #devMenu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      z-index: 9999;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    #devMenu>div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+
+    #devMenu label {
+      padding: 4px;
+    }
+
+    #devMenu textarea {
+      flex: 1;
+      width: 100%;
+      background: #111;
+      color: #0f0;
+      border: none;
+      padding: 4px;
+      font-family: monospace;
+      resize: none;
+    }
+
+    #devMenu button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      margin: 4px;
+    }
+
+    /* Fullscreen button styles (optional) */
+    #fullscreenBtn {
+      position: fixed;
+      right: 20px;
+      top: 65%;
+      transform: translateY(-50%);
+      padding: 14px 26px;
+      background: linear-gradient(135deg, #ff7f50, #ff6347);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 0 15px rgba(255, 127, 80, 0.6);
+      z-index: 10;
+    }
+
+    #fullscreenBtn:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 0 22px rgba(255, 127, 80, 0.9);
+    }
+
+    #snowCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      /* Make sure it's behind other content */
+    }
+
+    .Section {
+      font-weight: bold;
+      font-size: 30px;
+      font-family: "Roboto Mono", monospace;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      /* Set a valid weight */
+      font-style: normal;
+      image-rendering: pixelated;
+      /* Ensures images are pixelated */
+      text-rendering: geometricPrecision;
+      /* Improves text rendering */
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    </style>
+
+<body>
+  <canvas id="bg"></canvas>
+
+
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/5/50/Black_colour.jpg" alt="header">
+  <div id="clock">00:00:00</div>
+  <div class="bolder">
+  <span>iframe abuse</span>
+  </div>
+  <br>
+  <br>
+  <h1>Change iFrame Source</h1>
+  <h2>This will work with anything blocked by goguardian, not the web filter (securly).</h2>
+  <h2>Yes, that includes youtube, spotify, tiktok, or any other obviously blocked website like that. Will not work.</h2>
+  <h2>MUST HAVE "Https://" AT START OR IT WONT WORK.</h2>
+  <h2>This will be frequently updated depending on how much or how often I get more websites.</h2>
+  <h2>Now that I'm aware of it being back to back blocked, within the hour, the hub will be updated for the new website, the new soluton.</h2>
+  <h2>You cannot use this for google sites. (google.sites)</h2>
+  <hr>
+
+  <input type="text" id="urlInput" placeholder="Enter a new URL (https://)" size="30">
+  <br>
+
+  <select id="presets">
+    <option value="">Select preset URL</option>
+    <option class="Section" value="">Games</option>
+    <option value="https://gamesunblocked.io">Unblocker site</option>
+    <option value="https://mod.fnfhub.net/24879/">Indie cross (fnf)</option>
+    <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Games</option>
+    <option value="https://policeinfo.global.ssl.fastly.net/math/">Cuphead</option>
+    <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
+    <option value="https://waitwhosjoe.github.io/10minstildawn/">TMUD</option>
+    <option value="https://d11jzht7mj96rr.cloudfront.net/">Science Games</option>
+    <option value="https://hiring.sorbonne-alumni.org">Hiring</option>
+    <option value="https://unblockedgamespod.gitlab.io/">Games pod</option>
+    <option value="https://wafflegame.uk/unlimited/">Waffle game</option>
+    <option value="https://educationforindia.com">EFI</option>
+    <option value="https://wilway.cfd">Wilway alt</option>
+    <option class="Section" value="">Movies/Misc</option>
+    <option value="https://anigo.ro/">Anigo</option>
+    <option value="https://animeuniverse.best/">Anime</option>
+    <option value="https://lunastream.gay/">Lunastream</option>
+    <option value="https://thesolver.oneapp.dev/">Sudoku solver</option>
+    <option value="https://soundbuttonsworld.com">Soundboard</option>
+  </select>
+
+  <button onclick="changeIframeSource()">Load Site</button>
+  <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
+  <a href="https://2706692.playcode.io/" id="redirect-button2">New url hub</a>
+  <br>
+<div class="iframe"
+  <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
+  </div>
+
+  <!-- Chatbot script -->
+
+
+  <!-- Default Statcounter code for idk https://2671408.playcode.io/ -->
+
+
+  <noscript>
+    <div class="statcounter"><a title="site stats" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/13207478/0/851258fd/1/" alt="site stats" referrerPolicy="no-referrer-when-downgrade"></a></div>
+  </noscript>
+  <!-- End of Statcounter Code -->l>`;
+  <script>
+  
+  function updateClock() {
+    const now = new Date();
+    // Formats time as HH:MM:SS
+    const timeString = now.toLocaleTimeString(); 
+    document.getElementById('clock').textContent = timeString;
+}
+
+// Update the clock every 1 second (1000 milliseconds)
+setInterval(updateClock, 1000);
+
+// Initialize immediately on page load
+updateClock();
+var sc_project = 13207478;
+    var sc_invisible = 1;
+    var sc_security = "851258fd";
+
+
+
+    const canvas = document.getElementById("bg");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    const stars = [];
+    const STAR_COUNT = 200;
+
+    class Star {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 1.5;
+        this.speed = Math.random() * 0.5 + 0.2;
+      }
+
+      update() {
+        this.y += this.speed;
+        if (this.y > canvas.height) {
+          this.reset();
+          this.y = 0;
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "white";
+      }
+    }
+
+    for (let i = 0; i < STAR_COUNT; i++) {
+      stars.push(new Star());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let star of stars) {
+        star.update();
+        star.draw();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add event listener for fullscreen button
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        console.log('Fullscreen button event listener added.');
+      } else {
+        console.error('Element with id "fullscreenBtn" not found.');
+      }
+    });
+
+    // Function to change iframe source
+    function changeIframeSource() {
+      console.log('changeIframeSource() called.');
+
+      const selectElement = document.getElementById("presets");
+      const inputElement = document.getElementById("urlInput");
+      const iframe = document.getElementById("iframebox");
+
+      // Validate elements
+      if (!selectElement) {
+        console.error('Element with id "presets" not found.');
+        return;
+      }
+      if (!inputElement) {
+        console.error('Element with id "urlInput" not found.');
+        return;
+      }
+      if (!iframe) {
+        console.error('Element with id "iframebox" not found.');
+        return;
+      }
+
+      // Get selected URL or input value
+      const selectedUrl = selectElement.options[selectElement.selectedIndex]?.value;
+      console.log('Selected URL from dropdown:', selectedUrl);
+
+      const urlInputValue = inputElement.value.trim();
+      const url = urlInputValue || selectedUrl;
+      console.log('Final URL to load:', url);
+
+      // Validate URL
+      if (!url) {
+        alert("No URL selected or entered.");
+        console.log('No URL provided.');
+        return;
+      }
+
+      if (!url.startsWith("https://")) {
+        alert("MUST HAVE https:// AT START");
+        console.log('Invalid URL (missing https://):', url);
+        return;
+      }
+
+      // Update iframe src
+      iframe.src = url;
+      console.log('Iframe source updated to:', url);
+
+      // Open in new tab with embedded iframe
+      const win = window.open('about:blank', '_blank');
+      if (!win) {
+        console.error('Failed to open new window. It might be blocked by a popup blocker.');
+        return;
+      }
+
+      const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Dynamic Page</title>
+        <style>
+            body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+            iframe { width: 100%; height: 100%; border: none; }
+        </style>
+    </head>
+    <body>
+        <iframe src="${url}" allowfullscreen></iframe>
+    </body>
+    </html>
+  `;
+
+      try {
+        win.document.write(html);
+        win.document.close();
+        console.log('New window opened with URL:', url);
+      } catch (err) {
+        console.error('Error writing to new window:', err);
+      }
+    }
+
+    // Function to toggle fullscreen mode
+    function toggleFullscreen() {
+      const iframe = document.getElementById('iframebox');
+      if (!iframe) {
+        console.error('Element with id "iframebox" not found.');
+        return;
+      }
+
+      // Check if document is already in fullscreen
+      if (!document.fullscreenElement) {
+        // Request fullscreen for the iframe element
+        if (iframe.requestFullscreen) {
+          iframe.requestFullscreen();
+          console.log('Requesting fullscreen.');
+        } else if (iframe.webkitRequestFullscreen) {
+          iframe.webkitRequestFullscreen();
+          console.log('Requesting fullscreen (webkit).');
+        } else if (iframe.msRequestFullscreen) {
+          iframe.msRequestFullscreen();
+          console.log('Requesting fullscreen (MS).');
+        } else {
+          console.warn('Fullscreen API is not supported in this browser.');
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+          console.log('Exiting fullscreen.');
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+          console.log('Exiting fullscreen (webkit).');
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+          console.log('Exiting fullscreen (MS).');
+        } else {
+          console.warn('Fullscreen API is not supported in this browser.');
+        }
+      }
+    }
+
+window.addEventListener("load", function() {
+  console.log('Load event listener triggered.')
+    // 1. Check if the 'hasVisited' flag exists
+    const hasVisited = localStorage.getItem("hasVisited");
+
+    // 2. If it doesn't exist (!hasVisited), this is a new user
+    if (localStorage.getItem("hasVisited") === null) {
+      console.log('Alert triggered');
+        // Show the popup
+        alert("Read EVERYTHING or don't complain when a website won't work. (This will not appear for the rest of the time that you use the site.)");
+        alert("Remeber to go to the hub, it is where the new website will be when it gets blocked.(Right side of the screen.)");
+
+        // 3. Set the 'hasVisited' flag so they don't see it again
+        localStorage.setItem("hasVisited", "true");
+    }
+});
+newTab.document.head.appendChild(script);
+console.log("IT WORKS")
+
+     function checkBannedUser() {
+    // List of banned users
+    window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSdf4R2ONyk7bvfeLboSWpuvfVJ_sqtXPrNcXkeVUiqBxuklPw/viewform?usp=preview";
+    return;
+    const bannedUsers = [
+      "banneduser1@example.com",
+      "spammer@test.com",
+      "blockme@domain.net",
+      "daimen.lawson@smyrnaeagles.org"
+    ];
+
+    // Retrieve banned list from localStorage or initialize
+    let bannedList = JSON.parse(localStorage.getItem('bannedUsers')) || [];
+
+    // Prompt user for email if not already banned
+    if (bannedList.includes('banned')) {
+      // User is already banned
+      window.location.href = "https://google.com";
+      return;
+    }
+
+    let userEmail = window.prompt("Please enter your email to access this page. (I need this to re-send you the site, do NOT fabricate this.)");
+    if (!userEmail) return;
+
+    userEmail = userEmail.toLowerCase().trim();
+
+    // Check if user is in the banned list
+    if (bannedUsers.includes(userEmail)) {
+      // Add user to localStorage banned list
+      bannedList.push(userEmail);
+      localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
+
+      // Redirect banned user
+      window.location.href = "https://google.com";
+    } else {
+      alert("Access granted!");
+    }
+  }
+
+  window.addEventListener("load", function() {
+    console.log('Load event listener triggered.');
+
+    // Existing code...
+    const hasVisited = localStorage.getItem("hasVisited");
+
+    if (localStorage.getItem("hasVisited") === null) {
+      console.log('Alert triggered');
+      checkBannedUser();
+      localStorage.setItem("hasVisited", "true");
+    }
+  });
+</script>
+</body>
+</html>
