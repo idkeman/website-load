@@ -316,16 +316,6 @@
     </style>
 
 <body>
-  <!-- Add this div inside the body, right after <body> -->
-<div id="loadingScreen" style="
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background-color: rgba(0,0,0,0.8); z-index: 99999;
-  display: flex; align-items: center; justify-content: center; flex-direction: column;
-  font-family: 'Roboto Mono', monospace; color: #fff; padding: 20px; box-sizing: border-box;">
-  <h2>Loading and Troubleshooting...</h2>
-  <pre id="statusMessages" style="max-height: 70%; overflow-y: auto; width: 100%; background: #111; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px;"></pre>
-</div>
-  
   <canvas id="bg"></canvas>
 
 
@@ -670,104 +660,6 @@ console.log("IT WORKS")
       checkBannedUser();
       localStorage.setItem("hasVisited", "true");
     }
-    // Add this script at the end of your existing <script> block, or after all other scripts
-window.addEventListener('load', () => {
-  const overlay = document.getElementById('loadingScreen');
-  const statusPre = document.getElementById('statusMessages');
-
-  // Helper function to update status messages
-  function logStatus(message) {
-    statusPre.textContent += message + '\n';
-    statusPre.scrollTop = statusPre.scrollHeight;
-  }
-
-  async function runTroubleshoot() {
-    logStatus('Starting troubleshooting...');
-    // Test 1: Check clock function
-    try {
-      logStatus('Testing clock update...');
-      updateClock();
-      logStatus('Clock update function works.');
-    } catch (e) {
-      logStatus('Error in updateClock: ' + e);
-    }
-
-    // Test 2: Check resize event
-    try {
-      logStatus('Testing resize event...');
-      // Simulate resize
-      window.dispatchEvent(new Event('resize'));
-      logStatus('Resize event dispatched.');
-    } catch (e) {
-      logStatus('Error in resize event: ' + e);
-    }
-
-    // Test 3: Check Fullscreen toggle
-    try {
-      logStatus('Testing fullscreen toggle...');
-      // Try to request fullscreen for iframe
-      await toggleFullscreenTest();
-      logStatus('Fullscreen toggle tested.');
-    } catch (e) {
-      logStatus('Error in fullscreen toggle: ' + e);
-    }
-
-    // Test 4: Test localStorage
-    try {
-      logStatus('Testing localStorage...');
-      localStorage.setItem('testKey', 'testValue');
-      if (localStorage.getItem('testKey') === 'testValue') {
-        logStatus('localStorage is working.');
-      } else {
-        logStatus('localStorage test failed.');
-      }
-    } catch (e) {
-      logStatus('Error accessing localStorage: ' + e);
-    }
-
-    // Add more tests as needed...
-
-    logStatus('Troubleshooting completed.');
-    // Remove overlay after delay
-    setTimeout(() => {
-      overlay.style.display = 'none';
-    }, 1000);
-  }
-
-  // Helper for fullscreen test
-  function toggleFullscreenTest() {
-    return new Promise((resolve, reject) => {
-      const iframe = document.getElementById('iframebox');
-      if (!iframe) return reject('Iframe not found');
-
-      if (!document.fullscreenElement) {
-        // Request fullscreen
-        if (iframe.requestFullscreen) {
-          iframe.requestFullscreen().then(resolve).catch(reject);
-        } else if (iframe.webkitRequestFullscreen) {
-          iframe.webkitRequestFullscreen().then(resolve).catch(reject);
-        } else if (iframe.msRequestFullscreen) {
-          iframe.msRequestFullscreen().then(resolve).catch(reject);
-        } else {
-          reject('Fullscreen API not supported');
-        }
-      } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-          document.exitFullscreen().then(resolve).catch(reject);
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen().then(resolve).catch(reject);
-        } else if (iframe.msExitFullscreen) {
-          iframe.msExitFullscreen().then(resolve).catch(reject);
-        } else {
-          reject('Fullscreen API not supported');
-        }
-      }
-    });
-  }
-
-  // Run the troubleshoot process
-  runTroubleshoot();
   });
 </script>
 </body>
