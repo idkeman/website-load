@@ -2,673 +2,925 @@
 <html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamic iFrame Source</title>
+  
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-  <meta charset="UTF-8">
-  <title>Dynamic iframe source</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+  
+  <style>
+    /* CSS Variables for consistent theming */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #020024, #000a45, #020024);
+      --button-blue: linear-gradient(135deg, #1e90ff, #0047ab);
+      --button-purple: linear-gradient(133deg, rgb(0, 38, 255), rgba(136, 2, 173, 0.516));
+      --button-red: linear-gradient(135deg, #fff01eff, #ab0000ff);
+      --button-orange: linear-gradient(135deg, #ff7f50, #ff6347);
+      --text-glow: 0 0 10px rgba(100, 150, 255, 0.8);
+      --box-shadow-blue: 0 0 12px rgba(0, 120, 255, 0.5);
+      --font-family: "Roboto Mono", monospace;
+      --transition-speed: 0.3s;
+    }
 
-<style>
-#clock {
-  position: fixed;
-  top: 10px;
-  right: 20px;
-  color: white; /* Matches your dark theme */
-  font-family: 'Roboto Mono', monospace;
-  font-size: 2rem;
-  z-index: 1000; /* Keeps it above other elements */
-}
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      background: var(--primary-gradient);
+      font-family: var(--font-family);
+      font-size: 14px;
+      color: #ffffff;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: 160px;
+    }
 
-#bg {
+    /* Background Canvas */
+    #bg {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
+      z-index: -2;
       image-rendering: pixelated;
-      image-rendering: crisp-edges;
     }
 
-    body {
-      background: linear-gradient(135deg, #020024, #000a45, #020024);
-      margin: 0;
-      padding-top: 160px;
-      font-family: "Roboto Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      /* Set a valid weight */
-      font-style: normal;
-      font-size: 10px;
-      overflow-y: scroll;
-      /* Adjust this value to make the font smaller */
-    }
-
-    img {
+    /* Header */
+    .header {
       position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 115px;
-      left: 0;
-      top: 0;
+      background: #000;
       box-shadow: 0 6px 24px rgba(255, 255, 255, 0.34);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+
+    .site-title {
+      font-size: 52px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: var(--text-glow);
+      margin-left: 20px;
+    }
+
+    /* Clock */
+    #clock {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-family: var(--font-family);
+      font-size: 1.5rem;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 16px;
+      border-radius: 8px;
+      backdrop-filter: blur(5px);
+    }
+
+    /* Main Content */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
       z-index: 1;
     }
 
-    .bolder {
-      color: #ffffff;
-      position: fixed;
-      top: 40px;
-      left: 20px;
-      font-size: 52px;
-      font-weight: bold;
-      text-shadow: 0 0 10px rgba(100, 150, 255, 0.8);
-      z-index: 2;
-    }
-
+    /* Typography */
     h1 {
       color: #ffffff;
       border: 4px solid #000;
-      padding: 10px;
+      padding: 20px;
       background: rgba(0, 0, 0, 0.35);
-      box-shadow: 0 0 12px rgba(0, 120, 255, 0.5);
-      font-size: 30px;
-      /* Adjust this value to make the font smaller */
+      box-shadow: var(--box-shadow-blue);
+      font-size: 28px;
+      margin-bottom: 20px;
+      border-radius: 8px;
     }
 
     h2 {
       color: #e6ecff;
       border: 4px solid #000;
-      padding: 8px;
+      padding: 15px;
       background: rgba(0, 0, 0, 0.25);
-      font-size: 20px;
-      /* Adjust this value to make the font smaller */
+      font-size: 18px;
+      margin-bottom: 15px;
+      border-radius: 6px;
     }
 
-    .redirect-button {
-      position: fixed;
-      right: 20px;
-      top: 45%;
-      transform: translateY(-50%);
-      padding: 14px 26px;
-      background: linear-gradient(135deg, #1e90ff, #0047ab);
+    hr {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #1e90ff, transparent);
+      margin: 30px 0;
+    }
+
+    /* Controls Section */
+    .controls {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Form Elements */
+    input[type="text"] {
+      flex: 1;
+      min-width: 300px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      border: 2px solid #1e90ff;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: var(--font-family);
+      transition: all var(--transition-speed);
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #00bfff;
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
+    }
+
+    select {
+      flex: 1;
+      min-width: 300px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      border: 2px solid #1e90ff;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: var(--font-family);
+      cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #00bfff;
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
+    }
+
+    optgroup {
+      font-weight: 700;
+      font-size: 16px;
+      color: #1e90ff;
+    }
+
+    option {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 14px 28px;
+      background: var(--button-blue);
       color: white;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      text-decoration: none;
-      font-size: 20px;
-      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+      font-size: 16px;
+      font-weight: 500;
+      font-family: var(--font-family);
+      transition: all var(--transition-speed);
+      box-shadow: 0 4px 15px rgba(0, 140, 255, 0.4);
     }
 
-    #redirect-button2 {
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 180, 255, 0.7);
+    }
+
+    #fullscreenBtn {
+      background: var(--button-orange);
+    }
+
+    #fullscreenBtn:hover {
+      box-shadow: 0 6px 20px rgba(255, 127, 80, 0.7);
+    }
+
+    /* Side Buttons */
+    .side-buttons {
       position: fixed;
       right: 20px;
       top: 50%;
       transform: translateY(-50%);
-      padding: 14px 26px;
-      background: linear-gradient(133deg, rgb(0, 38, 255), rgba(136, 2, 173, 0.516));
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .side-button {
+      padding: 14px 28px;
       color: white;
       border: none;
-      border-radius: 15px;
+      border-radius: 10px;
       cursor: pointer;
       text-decoration: none;
-      font-size: 25px;
-      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      transition: all var(--transition-speed);
+      box-shadow: 0 4px 15px rgba(0, 140, 255, 0.4);
+      min-width: 180px;
+    }
+
+    #redirect-button2 {
+      background: var(--button-purple);
     }
 
     .redirect-button3 {
-      position: fixed;
-      right: 20px;
-      top: 90%;
-      transform: translateY(-50%);
-      padding: 14px 26px;
-      background: linear-gradient(135deg, #fff01eff, #ab0000ff);
-      color: white;
-      border: none;
+      background: var(--button-red);
+    }
+
+    .side-button:hover {
+      transform: translateX(-5px);
+      box-shadow: 0 6px 20px rgba(0, 180, 255, 0.7);
+    }
+
+    /* iFrame Container */
+    .iframe-container {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 20px;
       border-radius: 10px;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 16px;
-      box-shadow: 0 0 15px rgba(0, 140, 255, 0.6);
+      margin-top: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .redirect-button:hover {
-      transform: translateY(-50%) scale(1.05);
-      box-shadow: 0 0 22px rgba(0, 180, 255, 0.9);
-    }
-
-    input,
-    select,
-    button {
-      color: black;
-      background-color: #ffffff;
+    #iframebox {
+      width: 100%;
+      height: 600px;
       border: none;
       border-radius: 8px;
-      padding: 6px 1px;
-      font-size: 16px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 30px rgba(0, 120, 255, 0.3);
+      background: #fff;
     }
 
-    button {
-      cursor: pointer;
-      background: linear-gradient(135deg, #ffffff, #dfe6ff);
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .side-buttons {
+        position: static;
+        transform: none;
+        flex-direction: row;
+        justify-content: center;
+        margin-top: 30px;
+      }
+      
+      .content {
+        padding: 15px;
+      }
     }
 
-    button:hover {
-      background: linear-gradient(135deg, #ffffff, #bcd0ff);
+    @media (max-width: 768px) {
+      body {
+        padding-top: 180px;
+        font-size: 12px;
+      }
+      
+      .header {
+        height: 100px;
+      }
+      
+      .site-title {
+        font-size: 32px;
+      }
+      
+      #clock {
+        font-size: 1rem;
+        top: 10px;
+        right: 10px;
+      }
+      
+      .input-group {
+        flex-direction: column;
+      }
+      
+      input[type="text"],
+      select {
+        min-width: 100%;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .side-buttons {
+        flex-direction: column;
+      }
+      
+      #iframebox {
+        height: 400px;
+      }
     }
 
-    iframe {
-      box-shadow: 0 0 20px rgba(0, 120, 255, 0.4);
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 22px;
+        padding: 15px;
+      }
+      
+      h2 {
+        font-size: 16px;
+        padding: 12px;
+      }
+      
+      button,
+      .side-button {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+      
+      #iframebox {
+        height: 300px;
+      }
+    }
+
+    /* Loading State */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* Success/Error Messages */
+    .message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
       border-radius: 8px;
-      width: 100%;
-      height: 100px;
+      font-weight: 500;
+      z-index: 10000;
+      animation: slideDown 0.3s ease;
+      backdrop-filter: blur(10px);
     }
 
-    p {
-      color: #ffffff;
-      font-style: italic;
-    }
-
-    option {
-      font-family: "Roboto Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      /* Set a valid weight */
-      font-style: normal;
-      image-rendering: pixelated;
-      /* Ensures images are pixelated */
-      text-rendering: geometricPrecision;
-      /* Improves text rendering */
-    }
-
-    .select,
-    input,
-    button,
-    body,
-    h1,
-    h2,
-    p {
-      font-family: "Roboto Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      /* Set a valid weight */
-      font-style: normal;
-      overflow-y: auto;
-    }
-
-    /* Dev menu styles */
-    #devMenu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 50%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      display: none;
-      flex-direction: column;
-      z-index: 9999;
-      font-family: monospace;
-      color: #fff;
-    }
-
-    #devMenu>div {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
-    }
-
-    #devMenu label {
-      padding: 4px;
-    }
-
-    #devMenu textarea {
-      flex: 1;
-      width: 100%;
-      background: #111;
-      color: #0f0;
-      border: none;
-      padding: 4px;
-      font-family: monospace;
-      resize: none;
-    }
-
-    #devMenu button {
-      background: #444;
-      color: #fff;
-      border: none;
-      padding: 8px;
-      cursor: pointer;
-      margin: 4px;
-    }
-
-    /* Fullscreen button styles (optional) */
-    #fullscreenBtn {
-      position: fixed;
-      right: 20px;
-      top: 65%;
-      transform: translateY(-50%);
-      padding: 14px 26px;
-      background: linear-gradient(135deg, #ff7f50, #ff6347);
+    .success {
+      background: rgba(46, 204, 113, 0.9);
       color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 0 15px rgba(255, 127, 80, 0.6);
-      z-index: 10;
     }
 
-    #fullscreenBtn:hover {
-      transform: translateY(-50%) scale(1.05);
-      box-shadow: 0 0 22px rgba(255, 127, 80, 0.9);
+    .error {
+      background: rgba(231, 76, 60, 0.9);
+      color: white;
     }
 
-    #snowCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      /* Make sure it's behind other content */
+    @keyframes slideDown {
+      from {
+        transform: translate(-50%, -100%);
+        opacity: 0;
+      }
+      to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
     }
 
-    .Section {
-      font-weight: bold;
-      font-size: 30px;
-      font-family: "Roboto Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      /* Set a valid weight */
-      font-style: normal;
-      image-rendering: pixelated;
-      /* Ensures images are pixelated */
-      text-rendering: geometricPrecision;
-      /* Improves text rendering */
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 10px;
     }
 
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow-y: auto;
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    ::-webkit-scrollbar-thumb {
+      background: rgba(30, 144, 255, 0.5);
+      border-radius: 5px;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(30, 144, 255, 0.8);
     }
-    </style>
+  </style>
+</head>
 
 <body>
+  <!-- Background Canvas -->
   <canvas id="bg"></canvas>
 
+  <!-- Header -->
+  <header class="header">
+    <div class="site-title">iFrame Hub</div>
+    <div id="clock">00:00:00</div>
+  </header>
 
-
-  <img src="https://upload.wikimedia.org/wikipedia/commons/5/50/Black_colour.jpg" alt="header">
-  <div id="clock">00:00:00</div>
-  <div class="bolder">
-  <span>iframe abuse</span>
-  </div>
-  <br>
-  <br>
-  <h1>Change iFrame Source</h1>
-  <h2>This will work with anything blocked by goguardian, not the web filter (securly).</h2>
-  <h2>Yes, that includes youtube, spotify, tiktok, or any other obviously blocked website like that. Will not work.</h2>
-  <h2>MUST HAVE "Https://" AT START OR IT WONT WORK.</h2>
-  <h2>This will be frequently updated depending on how much or how often I get more websites.</h2>
-  <h2>Now that I'm aware of it being back to back blocked, within the hour, the hub will be updated for the new website, the new soluton.</h2>
-  <h2>You cannot use this for google sites. (google.sites)</h2>
-  <hr>
-
-  <input type="text" id="urlInput" placeholder="Enter a new URL (https://)" size="30">
-  <br>
-
-  <select id="presets">
-    <option value="">Select preset URL</option>
-    <option class="Section" value="">Games</option>
-    <option value="https://gamesunblocked.io">Unblocker site</option>
-    <option value="https://mod.fnfhub.net/24879/">Indie cross (fnf)</option>
-    <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Games</option>
-    <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
-    <option value="https://d11jzht7mj96rr.cloudfront.net/">Science Games</option>
-    <option value="https://hiring.sorbonne-alumni.org">Hiring</option>
-    <option value="https://unblockedgamespod.gitlab.io/">Games pod</option>
-    <option value="https://wafflegame.uk/unlimited/">Waffle game</option>
-    <option value="https://educationforindia.com">EFI</option>
-    <option value="https://wilway.cfd">Wilway alt</option>
-    <option value="https://waitwhosjoe.github.io/">Nother few games</option>
-    <option value="https://76ezgames.github.io/">Ezgames</option>
-    <option value="https://games.budsin.dev/">Budsin</option>
-    <option class="Section" value="">Movies/Misc</option>
-    <option value="https://anigo.ro/">Anigo</option>
-    <option value="https://animeuniverse.best/">Anime</option>
-    <option value="https://lunastream.gay/">Lunastream</option>
-    <option value="https://thesolver.oneapp.dev/">Sudoku solver</option>
-    <option value="https://soundbuttonsworld.com">Soundboard</option>
-    <option class="Section" value="">Proxies</option>
-    <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
-    <option value="https://bullguardian.s3.amazonaws.com/index.html">Bullguardian</option>
-    <option value="https://catclass.net/">Catclass</option>
-    <option value="https://1void-vision2.global.ssl.fastly.net/">Froggies backup</option>
-    <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
-    <option value="https://truffledisgoated.nya.pub/">Truffled</option>
-  </select>
-
-  <button onclick="changeIframeSource()">Load Site</button>
-  <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
-  <a href="https://2706692.playcode.io/" id="redirect-button2">New url hub</a>
-  <br>
-<div class="iframe"
-  <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
+  <!-- Side Buttons -->
+  <div class="side-buttons">
+    <button onclick="toggleFullscreen()" class="side-button" id="fullscreenBtn">Fullscreen</button>
   </div>
 
-  <!-- Chatbot script -->
+  <!-- Main Content -->
+  <main class="content">
+    <h1>Dynamic iFrame Source</h1>
+    
+    <div class="controls">
+      <h2>Url loader/iframe abuser.</h2>
+      <p>This tool works with websites blocked by GoGuardian (not Securly web filter).</p>
+      <p><strong>Note:</strong> Must use "https://" prefix. Does not work with Google Sites.</p>
+      
+      <div class="input-group">
+        <input type="text" id="urlInput" placeholder="Enter URL (https://example.com)" autocomplete="off">
+        <select id="presets">
+          <option value="">Select Preset URL</option>
+          <optgroup label="🎮 Games">
+            <option value="https://gamesunblocked.io">Unblocker Site</option>
+            <option value="https://mod.fnfhub.net/24879/">Indie Cross (FNF)</option>
+            <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
+            <option value="https://wafflegame.uk/unlimited/">Waffle Game</option>
+            <option value="https://games.budsin.dev/">Budsin Games</option>
+          </optgroup>
+          <optgroup label="🎬 Media">
+            <option value="https://anigo.ro/">Anigo</option>
+            <option value="https://animeuniverse.best/">Anime Universe</option>
+            <option value="https://lunastream.gay/">LunaStream</option>
+          </optgroup>
+          <optgroup label="🔗 Proxies">
+            <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
+            <option value="https://bullguardian.s3.amazonaws.com/index.html">BullGuardian</option>
+            <option value="https://catclass.net/">CatClass</option>
+            <option value="https://truffledisgoated.nya.pub/">Truffled</option>
+          </optgroup>
+        </select>
+      </div>
+      
+      <div class="button-group">
+        <button onclick="loadSite()">Load Site</button>
+        <button onclick="loadInNewTab()">Open in New Tab</button>
+        <button onclick="clearInput()">Clear Input</button>
+      </div>
+    </div>
 
+    <!-- iFrame Container -->
+    <div class="iframe-container">
+      <iframe id="iframebox" src="" allowfullscreen title="Dynamic Content Frame"></iframe>
+    </div>
 
-  <!-- Default Statcounter code for idk https://2671408.playcode.io/ -->
+    <!-- Info Section -->
+    <div style="margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+      <h2>Important Information</h2>
+      <p>• This hub is frequently updated with new unblocked websites</p>
+      <p>• Always use https:// prefix for URLs</p>
+    </div>
+  </main>
 
-
-  <noscript>
-    <div class="statcounter"><a title="site stats" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/13207478/0/851258fd/1/" alt="site stats" referrerPolicy="no-referrer-when-downgrade"></a></div>
-  </noscript>
-  <!-- End of Statcounter Code -->l>`;
   <script>
-  
-  function updateClock() {
-    const now = new Date();
-    // Formats time as HH:MM:SS
-    const timeString = now.toLocaleTimeString(); 
-    document.getElementById('clock').textContent = timeString;
-}
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded successfully');
+    initializeClock();
+    initializeBackground();
+    checkFirstVisit(); // This now includes banned user check
+    setupEventListeners();
+});
 
-// Update the clock every 1 second (1000 milliseconds)
-setInterval(updateClock, 1000);
-
-// Initialize immediately on page load
-updateClock();
-var sc_project = 13207478;
-    var sc_invisible = 1;
-    var sc_security = "851258fd";
-
-
-
-    const canvas = document.getElementById("bg");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-
-    const stars = [];
-    const STAR_COUNT = 200;
-
-    class Star {
-      constructor() {
-        this.reset();
+    // ========== CLOCK FUNCTIONALITY ==========
+    function initializeClock() {
+      function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        document.getElementById('clock').textContent = timeString;
       }
+      
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
 
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.radius = Math.random() * 1.5;
-        this.speed = Math.random() * 0.5 + 0.2;
+    // ========== BACKGROUND ANIMATION ==========
+    function initializeBackground() {
+      const canvas = document.getElementById("bg");
+      const ctx = canvas.getContext("2d");
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
       }
-
-      update() {
-        this.y += this.speed;
-        if (this.y > canvas.height) {
+      
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      
+      const stars = [];
+      const STAR_COUNT = 300;
+      
+      class Star {
+        constructor() {
           this.reset();
-          this.y = 0;
+        }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.radius = Math.random() * 1.5 + 0.5;
+          this.speed = Math.random() * 0.8 + 0.2;
+          this.opacity = Math.random() * 0.5 + 0.5;
+        }
+        
+        update() {
+          this.y += this.speed;
+          if (this.y > canvas.height) {
+            this.reset();
+            this.y = 0;
+          }
+        }
+        
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+          ctx.fill();
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = "rgba(100, 150, 255, 0.8)";
         }
       }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "white";
+      
+      // Create stars
+      for (let i = 0; i < STAR_COUNT; i++) {
+        stars.push(new Star());
       }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#020024");
+        gradient.addColorStop(0.5, "#000a45");
+        gradient.addColorStop(1, "#020024");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw stars
+        for (let star of stars) {
+          star.update();
+          star.draw();
+        }
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
     }
 
-    for (let i = 0; i < STAR_COUNT; i++) {
-      stars.push(new Star());
+    // ========== EVENT LISTENERS SETUP ==========
+    function setupEventListeners() {
+      // Enter key support for URL input
+      document.getElementById('urlInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          loadSite();
+        }
+      });
+      
+      // Preset dropdown auto-load
+      document.getElementById('presets').addEventListener('change', function(e) {
+        if (e.target.value) {
+          document.getElementById('urlInput').value = e.target.value;
+          // Optional: auto-load when preset is selected
+          // loadSite();
+        }
+      });
+      
+      // Fullscreen button
+      document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+      
+      // iFrame fullscreen support
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+      document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+      document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+      document.addEventListener('MSFullscreenChange', updateFullscreenButton);
     }
 
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let star of stars) {
-        star.update();
-        star.draw();
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Add event listener for fullscreen button
-      const fullscreenBtn = document.getElementById('fullscreenBtn');
-      if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        console.log('Fullscreen button event listener added.');
-      } else {
-        console.error('Element with id "fullscreenBtn" not found.');
-      }
-    });
-
-    // Function to change iframe source
-    function changeIframeSource() {
-      console.log('changeIframeSource() called.');
-
+    // ========== MAIN FUNCTIONS ==========
+    function loadSite() {
       const selectElement = document.getElementById("presets");
       const inputElement = document.getElementById("urlInput");
       const iframe = document.getElementById("iframebox");
-
-      // Validate elements
-      if (!selectElement) {
-        console.error('Element with id "presets" not found.');
-        return;
-      }
-      if (!inputElement) {
-        console.error('Element with id "urlInput" not found.');
-        return;
-      }
-      if (!iframe) {
-        console.error('Element with id "iframebox" not found.');
-        return;
-      }
-
-      // Get selected URL or input value
-      const selectedUrl = selectElement.options[selectElement.selectedIndex]?.value;
-      console.log('Selected URL from dropdown:', selectedUrl);
-
+      
+      // Get URL (prefer input over dropdown)
       const urlInputValue = inputElement.value.trim();
+      const selectedUrl = selectElement.value;
       const url = urlInputValue || selectedUrl;
-      console.log('Final URL to load:', url);
-
-      // Validate URL
+      
+      // Validation
       if (!url) {
-        alert("No URL selected or entered.");
-        console.log('No URL provided.');
+        showMessage("Please enter or select a URL", "error");
         return;
       }
-
+      
       if (!url.startsWith("https://")) {
-        alert("MUST HAVE https:// AT START");
-        console.log('Invalid URL (missing https://):', url);
+        showMessage("URL must start with https://", "error");
         return;
       }
-
-      // Update iframe src
-      iframe.src = url;
-      console.log('Iframe source updated to:', url);
-
-      // Open in new tab with embedded iframe
-      const win = window.open('about:blank', '_blank');
-      if (!win) {
-        console.error('Failed to open new window. It might be blocked by a popup blocker.');
-        return;
-      }
-
-      const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Dynamic Page</title>
-        <style>
-            body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-            iframe { width: 100%; height: 100%; border: none; }
-        </style>
-    </head>
-    <body>
-        <iframe src="${url}" allowfullscreen></iframe>
-    </body>
-    </html>
-  `;
-
+      
+      // Validate URL format
       try {
-        win.document.write(html);
-        win.document.close();
-        console.log('New window opened with URL:', url);
-      } catch (err) {
-        console.error('Error writing to new window:', err);
+        new URL(url);
+      } catch (e) {
+        showMessage("Invalid URL format", "error");
+        return;
       }
+      
+      // Show loading state
+      iframe.classList.add('loading');
+      iframe.src = "";
+      
+      // Set iframe source with timeout to ensure proper loading
+      setTimeout(() => {
+        iframe.src = url;
+        showMessage("Site loaded successfully!", "success");
+        
+        // Save to recent URLs
+        saveToRecent(url);
+        
+        // Remove loading state after a delay
+        setTimeout(() => {
+          iframe.classList.remove('loading');
+        }, 500);
+      }, 100);
     }
-
-    // Function to toggle fullscreen mode
+    
+    function loadInNewTab() {
+      const inputElement = document.getElementById("urlInput");
+      const selectElement = document.getElementById("presets");
+      const urlInputValue = inputElement.value.trim();
+      const selectedUrl = selectElement.value;
+      const url = urlInputValue || selectedUrl;
+      
+      if (!url) {
+        showMessage("Please enter or select a URL", "error");
+        return;
+      }
+      
+      if (!url.startsWith("https://")) {
+        showMessage("URL must start with https://", "error");
+        return;
+      }
+      
+      // Open in new tab
+      const newTab = window.open('', '_blank');
+      if (!newTab) {
+        showMessage("Popup blocked! Please allow popups for this site.", "error");
+        return;
+      }
+      
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Dynamic Content - ${url}</title>
+            <style>
+                body, html { 
+                    margin: 0; 
+                    padding: 0; 
+                    height: 100%; 
+                    overflow: hidden; 
+                    background: #000;
+                }
+                iframe { 
+                    width: 100%; 
+                    height: 100%; 
+                    border: none; 
+                }
+                .loading {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-family: monospace;
+                    font-size: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="loading">Loading...</div>
+            <iframe src="${url}" allowfullscreen 
+                    onload="document.querySelector('.loading').style.display='none'">
+            </iframe>
+        </body>
+        </html>`;
+      
+      newTab.document.write(html);
+      newTab.document.close();
+      showMessage("Opened in new tab", "success");
+    }
+    
     function toggleFullscreen() {
       const iframe = document.getElementById('iframebox');
-      if (!iframe) {
-        console.error('Element with id "iframebox" not found.');
-        return;
-      }
-
-      // Check if document is already in fullscreen
+      
       if (!document.fullscreenElement) {
-        // Request fullscreen for the iframe element
         if (iframe.requestFullscreen) {
           iframe.requestFullscreen();
-          console.log('Requesting fullscreen.');
         } else if (iframe.webkitRequestFullscreen) {
           iframe.webkitRequestFullscreen();
-          console.log('Requesting fullscreen (webkit).');
         } else if (iframe.msRequestFullscreen) {
           iframe.msRequestFullscreen();
-          console.log('Requesting fullscreen (MS).');
-        } else {
-          console.warn('Fullscreen API is not supported in this browser.');
         }
       } else {
-        // Exit fullscreen
         if (document.exitFullscreen) {
           document.exitFullscreen();
-          console.log('Exiting fullscreen.');
         } else if (document.webkitExitFullscreen) {
           document.webkitExitFullscreen();
-          console.log('Exiting fullscreen (webkit).');
         } else if (document.msExitFullscreen) {
           document.msExitFullscreen();
-          console.log('Exiting fullscreen (MS).');
-        } else {
-          console.warn('Fullscreen API is not supported in this browser.');
         }
       }
     }
+    
+    function updateFullscreenButton() {
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      if (document.fullscreenElement) {
+        fullscreenBtn.textContent = 'Exit Fullscreen';
+        fullscreenBtn.style.background = 'linear-gradient(135deg, #ff4757, #ff3838)';
+      } else {
+        fullscreenBtn.textContent = 'Fullscreen';
+        fullscreenBtn.style.background = 'linear-gradient(135deg, #ff7f50, #ff6347)';
+      }
+    }
+    
+    function clearInput() {
+      document.getElementById('urlInput').value = '';
+      document.getElementById('presets').selectedIndex = 0;
+      showMessage("Input cleared", "success");
+    }
+    
+    function clearHistory() {
+      if (confirm("Clear all browsing data for this site?")) {
+        localStorage.removeItem('hasVisited');
+        localStorage.removeItem('recentURLs');
+        showMessage("History cleared", "success");
+      }
+    }
 
-window.addEventListener("load", function() {
-  console.log('Load event listener triggered.')
+    // ========== UTILITY FUNCTIONS ==========
+    function showMessage(text, type) {
+      // Remove existing message
+      const existingMessage = document.querySelector('.message');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+      
+      // Create new message
+      const message = document.createElement('div');
+      message.className = `message ${type}`;
+      message.textContent = text;
+      document.body.appendChild(message);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        if (message.parentNode) {
+          message.style.opacity = '0';
+          setTimeout(() => {
+            if (message.parentNode) {
+              message.remove();
+            }
+          }, 300);
+        }
+      }, 3000);
+    }
+    
+    function saveToRecent(url) {
+      let recentURLs = JSON.parse(localStorage.getItem('recentURLs')) || [];
+      
+      // Remove if already exists
+      recentURLs = recentURLs.filter(item => item !== url);
+      
+      // Add to beginning
+      recentURLs.unshift(url);
+      
+      // Keep only last 10
+      if (recentURLs.length > 10) {
+        recentURLs = recentURLs.slice(0, 10);
+      }
+      
+      localStorage.setItem('recentURLs', JSON.stringify(recentURLs));
+    }
+    
+    // ========== FIRST VISIT & BANNED USER CHECK ==========
+function checkFirstVisit() {
+    console.log('Load event listener triggered.');
+    
     // 1. Check if the 'hasVisited' flag exists
     const hasVisited = localStorage.getItem("hasVisited");
 
     // 2. If it doesn't exist (!hasVisited), this is a new user
     if (localStorage.getItem("hasVisited") === null) {
-      console.log('Alert triggered');
-        // Show the popup
+        console.log('First visit detected');
+          window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSdf4R2ONyk7bvfeLboSWpuvfVJ_sqtXPrNcXkeVUiqBxuklPw/viewform?usp=preview";
+        
+        // Show the popup alerts
         alert("Read EVERYTHING or don't complain when a website won't work. (This will not appear for the rest of the time that you use the site.)");
-        alert("Remeber to go to the hub, it is where the new website will be when it gets blocked.(Right side of the screen.)");
-
+        alert("Remember to go to the hub, it is where the new website will be when it gets blocked. (Right side of the screen.)");
+        
+        // Run banned user check
+        checkBannedUser();
+        
         // 3. Set the 'hasVisited' flag so they don't see it again
         localStorage.setItem("hasVisited", "true");
     }
-});
-newTab.document.head.appendChild(script);
-console.log("IT WORKS")
+}
 
-     function checkBannedUser() {
+// ========== BANNED USER CHECK FUNCTION ==========
+function checkBannedUser() {
     // List of banned users
-    window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSdf4R2ONyk7bvfeLboSWpuvfVJ_sqtXPrNcXkeVUiqBxuklPw/viewform?usp=preview";
-    return;
     const bannedUsers = [
-      "banneduser1@example.com",
-      "spammer@test.com",
-      "blockme@domain.net",
-      "daimen.lawson@smyrnaeagles.org"
+        "banneduser1@example.com",
+        "spammer@test.com",
+        "blockme@domain.net",
+        "daimen.lawson@smyrnaeagles.org"
     ];
 
     // Retrieve banned list from localStorage or initialize
     let bannedList = JSON.parse(localStorage.getItem('bannedUsers')) || [];
 
-    // Prompt user for email if not already banned
+    // Check if user is already marked as banned in localStorage
     if (bannedList.includes('banned')) {
-      // User is already banned
-      window.location.href = "https://google.com";
-      return;
+        // User is already banned
+        window.location.href = "https://google.com";
+        return;
     }
 
+    // Prompt user for email
     let userEmail = window.prompt("Please enter your email to access this page. (I need this to re-send you the site, do NOT fabricate this.)");
-    if (!userEmail) return;
+    
+    // If user cancels or doesn't enter email
+    if (!userEmail) {
+        // Optional: redirect or handle cancellation
+        return;
+    }
 
     userEmail = userEmail.toLowerCase().trim();
 
     // Check if user is in the banned list
     if (bannedUsers.includes(userEmail)) {
-      // Add user to localStorage banned list
-      bannedList.push(userEmail);
-      localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
+        // Add user to localStorage banned list
+        bannedList.push(userEmail);
+        bannedList.push('banned'); // Mark as banned
+        localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
 
-      // Redirect banned user
-      window.location.href = "https://google.com";
+        // Redirect banned user
+        window.location.href = "https://google.com";
     } else {
-      alert("Access granted!");
+        alert("Access granted!");
     }
-  }
+}
 
-  window.addEventListener("load", function() {
-    console.log('Load event listener triggered.');
+    // ========== ERROR HANDLING ==========
+    window.addEventListener('error', function(e) {
+      console.error('Error occurred:', e.error);
+      showMessage("An error occurred. Please try again.", "error");
+    });
 
-    // Existing code...
-    const hasVisited = localStorage.getItem("hasVisited");
+    // iFrame error handling
+    document.getElementById('iframebox').addEventListener('load', function() {
+      this.classList.remove('loading');
+    });
 
-    if (localStorage.getItem("hasVisited") === null) {
-      console.log('Alert triggered');
-      checkBannedUser();
-      localStorage.setItem("hasVisited", "true");
-    }
-  });
-</script>
+    document.getElementById('iframebox').addEventListener('error', function() {
+      this.classList.remove('loading');
+      showMessage("Failed to load site. It may be blocked or unavailable.", "error");
+    });
+  </script>
 </body>
 </html>
