@@ -313,17 +313,6 @@
       height: 100%;
       border: none;
     }
-
-    #codeInputContainer {
-  position: fixed;
-  right: 20px;
-  top: 80%;
-  transform: translateY(-50%);
-  z-index: 10000;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 4px;
-  border-radius: 4px;
-}
     </style>
 
 <body>
@@ -680,23 +669,6 @@ console.log("IT WORKS")
       localStorage.setItem("hasVisited", "true");
     }
   });
-
-document.getElementById('codeInput').addEventListener('keydown', function(event) {
-  if (event.key === 'Enter') {
-    const inputCode = event.target.value.trim();
-    if (inputCode === '1858') {
-      // Redirect to the video URL
-      window.location.href = 'https://drive.google.com/file/d/1Xy4LQPdI3OLnAeqF3AwjBbRYCyab1GcQ/view?usp=drive_link'; // Replace with your actual video URL
-    } else {
-      alert('Incorrect code.');
-    }
-    event.target.value = ''; // clear input
-  }
-});
 </script>
-<!-- Add this inside your <body> tag, preferably near the end -->
-<div id="codeInputContainer">
-  <input type="text" id="codeInput" placeholder="Enter Code" style="width: 80px; padding: 4px; font-size: 14px;">
-</div>
 </body>
 </html>
