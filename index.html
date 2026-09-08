@@ -313,9 +313,332 @@
       height: 100%;
       border: none;
     }
-    </style>
+    .url-input-section {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.url-input {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.url-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.preset-select {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  background-size: 12px;
+}
+
+.preset-select option {
+  background: #2d3748;
+  color: white;
+  padding: 10px;
+}
+
+.preset-select optgroup {
+  background: #1a202c;
+  color: #a0aec0;
+  font-weight: bold;
+  padding: 8px 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.divider span {
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Hover effects */
+.preset-select:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.preset-select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .url-input-section {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .url-input,
+  .preset-select {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+.go-button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.go-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.go-button:active {
+  transform: translateY(0);
+}
+
+.loading {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+<!-- Add this CSS right before the closing </style> tag -->
+<style>
+/* Loading Screen Styles */
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #020024, #000a45, #020024);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#loadingScreen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(100, 150, 255, 0.5);
+    border: 2px solid rgba(100, 150, 255, 0.3);
+    max-width: 500px;
+    width: 80%;
+}
+
+.loading-spinner {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 2rem;
+    position: relative;
+}
+
+.spinner {
+    width: 100%;
+    height: 100%;
+    border: 8px solid rgba(100, 150, 255, 0.2);
+    border-top: 8px solid #1e90ff;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+.spinner-inner {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(100, 150, 255, 0.1);
+    border-top: 5px solid #4169e1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite reverse;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(100, 150, 255, 0.8);
+}
+
+.loading-url {
+    color: #a0c8ff;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(100, 150, 255, 0.3);
+    word-break: break-all;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.loading-dots {
+    display: inline-block;
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(100, 150, 255, 0.2);
+    border-radius: 2px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1e90ff, #4169e1);
+    width: 0%;
+    border-radius: 2px;
+    animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0%; transform: translateX(-100%); }
+    50% { width: 70%; }
+    100% { width: 100%; transform: translateX(100%); }
+}
+
+.loading-tip {
+    color: #88aaff;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    margin-top: 1.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border-left: 3px solid #1e90ff;
+}
+
+.loading-tip:before {
+    content: "💡 ";
+}
+</style>
 
 <body>
+  <!-- Add this HTML right after the opening <body> tag -->
+<div id="loadingScreen">
+    <div class="loading-content">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="spinner-inner"></div>
+        </div>
+        
+        <div class="loading-text">
+            Loading content<span class="loading-dots"></span>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div id="loadingUrl" class="loading-url">
+            Preparing your content...
+        </div>
+        
+        <div class="loading-tip" id="loadingTip">
+            Tip: You can use Ctrl+L to quickly focus the URL input
+        </div>
+    </div>
+</div>
   <canvas id="bg"></canvas>
 
 
@@ -336,41 +659,63 @@
   <h2>You cannot use this for google sites. (google.sites)</h2>
   <hr>
 
-  <input type="text" id="urlInput" placeholder="Enter a new URL (https://)" size="30">
-  <br>
+<div class="url-input-section">
+  <div class="input-group">
+    <label for="urlInput">Enter URL</label>
+    <input type="text" id="urlInput" placeholder="https://example.com" class="url-input">
+  </div>
 
-  <select id="presets">
-    <option value="">Select preset URL</option>
-    <option class="Section" value="">Games</option>
-    <option value="https://gamesunblocked.io">Unblocker site</option>
-    <option value="https://mod.fnfhub.net/24879/">Indie cross (fnf)</option>
-    <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Games</option>
-    <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
-    <option value="https://d11jzht7mj96rr.cloudfront.net/">Science Games</option>
-    <option value="https://hiring.sorbonne-alumni.org">Hiring</option>
-    <option value="https://unblockedgamespod.gitlab.io/">Games pod</option>
-    <option value="https://wafflegame.uk/unlimited/">Waffle game</option>
-    <option value="https://educationforindia.com">EFI</option>
-    <option value="https://wilway.cfd">Wilway alt</option>
-    <option value="https://waitwhosjoe.github.io/">Nother few games</option>
-    <option value="https://76ezgames.github.io/">Ezgames</option>
-    <option value="https://games.budsin.dev/">Budsin</option>
-    <option class="Section" value="">Movies/Misc</option>
-    <option value="https://anigo.ro/">Anigo</option>
-    <option value="https://animeuniverse.best/">Anime</option>
-    <option value="https://lunastream.gay/">Lunastream</option>
-    <option value="https://thesolver.oneapp.dev/">Sudoku solver</option>
-    <option value="https://soundbuttonsworld.com">Soundboard</option>
-    <option class="Section" value="">Proxies</option>
-    <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
-    <option value="https://bullguardian.s3.amazonaws.com/index.html">Bullguardian</option>
-    <option value="https://catclass.net/">Catclass</option>
-    <option value="https://1void-vision2.global.ssl.fastly.net/">Froggies backup</option>
-    <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
-    <option value="https://truffledisgoated.nya.pub/">Truffled</option>
-  </select>
+  <div class="divider">
+    <span>or</span>
+  </div>
 
-  <button onclick="changeIframeSource()">Load Site</button>
+  <div class="input-group">
+    <label for="presets">Choose from Presets</label>
+    <select id="presets" class="preset-select">
+      <option value="">Select a preset URL...</option>
+      
+      <optgroup label="🎮 Games">
+        <option value="https://gamesunblocked.io">Unblocker site</option>
+        <option value="https://mod.fnfhub.net/24879/">Indie cross (FNF)</option>
+        <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Basketball Legends</option>
+        <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
+        <option value="https://d11jzht7mj96rr.cloudfront.net/">Science Games</option>
+        <option value="https://hiring.sorbonne-alumni.org">Hiring</option>
+        <option value="https://unblockedgamespod.gitlab.io/">Games Pod</option>
+        <option value="https://wafflegame.uk/unlimited/">Waffle Game</option>
+        <option value="https://educationforindia.com">EFI</option>
+        <option value="https://wilway.cfd">Wilway Alt</option>
+        <option value="https://waitwhosjoe.github.io/">More Games</option>
+        <option value="https://76ezgames.github.io/">EZ Games</option>
+        <option value="https://games.budsin.dev/">Budsin Games</option>
+      </optgroup>
+      
+      <optgroup label="🎬 Movies & Misc">
+        <option value="https://anigo.ro/">Anigo</option>
+        <option value="https://animeuniverse.best/">Anime Universe</option>
+        <option value="https://lunastream.gay/">Lunastream</option>
+        <option value="https://thesolver.oneapp.dev/">Sudoku Solver</option>
+        <option value="https://soundbuttonsworld.com">Soundboard World</option>
+      </optgroup>
+      
+      <optgroup label="🔗 Proxies">
+        <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
+        <option value="https://bullguardian.s3.amazonaws.com/index.html">Bullguardian</option>
+        <option value="https://catclass.net/">Catclass</option>
+        <option value="https://1void-vision2.global.ssl.fastly.net/">Froggies Backup</option>
+        <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
+        <option value="https://truffledisgoated.nya.pub/">Truffled</option>
+      </optgroup>
+    </select>
+  </div>
+</div>
+
+<button onclick="changeIframeSource()" id="goButton" class="go-button">
+  <span>Go to URL</span>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linecap="round"/>
+  </svg>
+</button>
   <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
   <a href="https://2706692.playcode.io/" id="redirect-button2">New url hub</a>
   <br>
@@ -480,84 +825,166 @@ var sc_project = 13207478;
       }
     });
 
-    // Function to change iframe source
-    function changeIframeSource() {
-      console.log('changeIframeSource() called.');
+    // Add this JavaScript after your existing changeIframeSource function
 
-      const selectElement = document.getElementById("presets");
-      const inputElement = document.getElementById("urlInput");
-      const iframe = document.getElementById("iframebox");
+// Loading screen management
+let loadingTips = [
+    "Tip: You can use Ctrl+L to quickly focus the URL input",
+    "Tip: Select from presets for quick access to popular sites",
+    "Tip: Always include https:// at the beginning of URLs",
+    "Tip: Use the hub for the latest unblocked websites",
+    "Tip: Fullscreen mode works best for games and videos"
+];
 
-      // Validate elements
-      if (!selectElement) {
-        console.error('Element with id "presets" not found.');
+function showLoadingScreen(url) {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingUrl = document.getElementById('loadingUrl');
+    const loadingTip = document.getElementById('loadingTip');
+    
+    // Update loading text with URL
+    loadingUrl.textContent = url || 'Preparing your content...';
+    
+    // Show random tip
+    const randomTip = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+    loadingTip.textContent = randomTip;
+    
+    // Show loading screen
+    loadingScreen.classList.remove('hidden');
+    
+    // Force reflow
+    loadingScreen.offsetHeight;
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.classList.add('hidden');
+}
+
+// Modify the changeIframeSource function to include loading screen
+function changeIframeSource() {
+    console.log('changeIframeSource() called.');
+
+    const selectElement = document.getElementById("presets");
+    const inputElement = document.getElementById("urlInput");
+    const iframe = document.getElementById("iframebox");
+    const goButton = document.getElementById("goButton");
+
+    // Validate elements
+    if (!selectElement || !inputElement || !iframe || !goButton) {
+        console.error('Required elements not found.');
         return;
-      }
-      if (!inputElement) {
-        console.error('Element with id "urlInput" not found.');
-        return;
-      }
-      if (!iframe) {
-        console.error('Element with id "iframebox" not found.');
-        return;
-      }
+    }
 
-      // Get selected URL or input value
-      const selectedUrl = selectElement.options[selectElement.selectedIndex]?.value;
-      console.log('Selected URL from dropdown:', selectedUrl);
+    // Get selected URL or input value
+    const selectedUrl = selectElement.options[selectElement.selectedIndex]?.value;
+    const urlInputValue = inputElement.value.trim();
+    const url = urlInputValue || selectedUrl;
 
-      const urlInputValue = inputElement.value.trim();
-      const url = urlInputValue || selectedUrl;
-      console.log('Final URL to load:', url);
-
-      // Validate URL
-      if (!url) {
+    // Validate URL
+    if (!url) {
         alert("No URL selected or entered.");
         console.log('No URL provided.');
         return;
-      }
+    }
 
-      if (!url.startsWith("https://")) {
+    if (!url.startsWith("https://")) {
         alert("MUST HAVE https:// AT START");
         console.log('Invalid URL (missing https://):', url);
         return;
-      }
+    }
 
-      // Update iframe src
-      iframe.src = url;
-      console.log('Iframe source updated to:', url);
+    // Show loading screen
+    showLoadingScreen(url);
+    
+    // Add loading state to button
+    goButton.classList.add('loading');
+    goButton.disabled = true;
 
-      // Open in new tab with embedded iframe
-      const win = window.open('about:blank', '_blank');
-      if (!win) {
-        console.error('Failed to open new window. It might be blocked by a popup blocker.');
+    // Update iframe src
+    iframe.src = url;
+    console.log('Iframe source updated to:', url);
+
+    // Open in new tab with embedded iframe
+    const win = window.open('about:blank', '_blank');
+    if (!win) {
+        console.error('Failed to open new window.');
+        hideLoadingScreen();
+        goButton.classList.remove('loading');
+        goButton.disabled = false;
         return;
-      }
+    }
 
-      const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Dynamic Page</title>
-        <style>
-            body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-            iframe { width: 100%; height: 100%; border: none; }
-        </style>
-    </head>
-    <body>
-        <iframe src="${url}" allowfullscreen></iframe>
-    </body>
-    </html>
-  `;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Page - ${url}</title>
+    <style>
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #020024, #000a45, #020024);
+        }
+        iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+        }
+    </style>
+</head>
+<body>
+    <iframe src="${url}" allowfullscreen></iframe>
+</body>
+</html>`;
 
-      try {
+    try {
         win.document.write(html);
         win.document.close();
         console.log('New window opened with URL:', url);
-      } catch (err) {
+        
+        // Hide loading screen after a short delay
+        setTimeout(() => {
+            hideLoadingScreen();
+            goButton.classList.remove('loading');
+            goButton.disabled = false;
+            
+            // Clear input if successful
+            inputElement.value = '';
+            selectElement.selectedIndex = 0;
+        }, 1000);
+        
+    } catch (err) {
         console.error('Error writing to new window:', err);
-      }
+        hideLoadingScreen();
+        goButton.classList.remove('loading');
+        goButton.disabled = false;
     }
+}
+
+// Add event listener for iframe load
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('iframebox');
+    if (iframe) {
+        iframe.addEventListener('load', function() {
+            // This will hide loading if iframe loads directly on page
+            setTimeout(hideLoadingScreen, 500);
+        });
+    }
+    
+    // Hide loading screen on page load (after initial content loads)
+    window.addEventListener('load', function() {
+        setTimeout(hideLoadingScreen, 1000);
+    });
+    
+    // Add escape key to close loading screen
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideLoadingScreen();
+        }
+    });
+});
 
     // Function to toggle fullscreen mode
     function toggleFullscreen() {
@@ -669,6 +1096,42 @@ console.log("IT WORKS")
       localStorage.setItem("hasVisited", "true");
     }
   });
+
+  // Add this to make the interface more interactive
+document.addEventListener('DOMContentLoaded', function() {
+  const urlInput = document.getElementById('urlInput');
+  const presetSelect = document.getElementById('presets');
+  
+  // Update input when preset is selected
+  presetSelect.addEventListener('change', function() {
+    if (this.value) {
+      urlInput.value = this.value;
+      urlInput.focus();
+      
+      // Add visual feedback
+      urlInput.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        urlInput.style.transform = 'scale(1)';
+      }, 200);
+    }
+  });
+  
+  // Clear preset when user starts typing
+  urlInput.addEventListener('input', function() {
+    if (presetSelect.value) {
+      presetSelect.selectedIndex = 0;
+    }
+  });
+  
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'l') {
+      e.preventDefault();
+      urlInput.focus();
+      urlInput.select();
+    }
+  });
+});
 </script>
 </body>
 </html>
