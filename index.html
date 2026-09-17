@@ -12,6 +12,161 @@
 </head>
 
 <style>
+  #welcomeModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#welcomeModal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.welcome-content {
+    background: linear-gradient(135deg, #020024, #000a45, #020024);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(100, 150, 255, 0.5);
+    border: 2px solid rgba(100, 150, 255, 0.3);
+    position: relative;
+    animation: modalAppear 0.5s ease-out;
+}
+
+@keyframes modalAppear {
+    from {
+        transform: translateY(-30px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.welcome-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.welcome-title {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(100, 150, 255, 0.8);
+}
+
+.welcome-subtitle {
+    color: #a0c8ff;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.welcome-message {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid #1e90ff;
+}
+
+.welcome-message h3 {
+    color: white;
+    margin-top: 0;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.welcome-message ul {
+    color: #e6ecff;
+    padding-left: 1.5rem;
+    margin: 0;
+}
+
+.welcome-message li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.welcome-message li strong {
+    color: #1e90ff;
+}
+
+.welcome-footer {
+    text-align: center;
+    color: #88aaff;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(100, 150, 255, 0.2);
+}
+
+.welcome-button {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1e90ff, #0047ab);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.welcome-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 140, 255, 0.6);
+}
+
+.welcome-button:active {
+    transform: translateY(0);
+}
+
+.welcome-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    color: #a0c8ff;
+    font-size: 0.9rem;
+}
+
+.welcome-checkbox input {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.welcome-checkbox label {
+    cursor: pointer;
+}
+  
 #clock {
   position: fixed;
   top: 10px;
@@ -612,9 +767,44 @@
 .loading-tip:before {
     content: "💡 ";
 }
+  
 </style>
 
 <body>
+  <!-- Welcome Modal -->
+<div id="welcomeModal">
+  <div class="welcome-content">
+    <div class="welcome-header">
+      <span class="welcome-icon">🚀</span>
+      <h1 class="welcome-title">Welcome to iFrame Abuse!</h1>
+      <p class="welcome-subtitle">Your gateway to unblocked content</p>
+    </div>
+    
+    <div class="welcome-message">
+      <h3>Important Information:</h3>
+      <ul>
+        <li><strong>Always include</strong> "https://" at the beginning of URLs</li>
+        <li><strong>Check the hub</strong> (right side of screen) for the latest unblocked websites</li>
+        <li><strong>This works</strong> with sites blocked by GoGuardian, but not web filters like Securly</li>
+        <li><strong>Does NOT work</strong> with Google Sites (google.sites)</li>
+        <li><strong>Popular sites</strong> like YouTube, Spotify, TikTok won't work through this method</li>
+      </ul>
+    </div>
+    
+    <div class="welcome-checkbox">
+      <input type="checkbox" id="dontShowAgain">
+      <label for="dontShowAgain">Don't show this message again</label>
+    </div>
+    
+    <button class="welcome-button" onclick="closeWelcomeModal()">
+      Get Started
+    </button>
+    
+    <div class="welcome-footer">
+      The site will be updated within hours if blocked. Happy browsing! ✨
+    </div>
+  </div>
+</div>
   <!-- Add this HTML right after the opening <body> tag -->
 <div id="loadingScreen">
     <div class="loading-content">
@@ -729,6 +919,59 @@
   </noscript>
   <!-- End of Statcounter Code -->l>`;
   <script>
+    // Welcome Modal Functions
+function showWelcomeModal() {
+    // Check if user has visited before
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    const dontShowAgain = localStorage.getItem('dontShowWelcomeAgain');
+    
+    // Only show if this is first visit AND user hasn't checked "don't show again"
+    if (!hasSeenWelcome && !dontShowAgain) {
+        const modal = document.getElementById('welcomeModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+    }
+}
+
+function closeWelcomeModal() {
+    const modal = document.getElementById('welcomeModal');
+    const dontShowCheckbox = document.getElementById('dontShowAgain');
+    
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Re-enable scrolling
+        
+        // Mark as visited
+        localStorage.setItem('hasSeenWelcome', 'true');
+        
+        // Check if user wants to never see it again
+        if (dontShowCheckbox && dontShowCheckbox.checked) {
+            localStorage.setItem('dontShowWelcomeAgain', 'true');
+        }
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('welcomeModal');
+    
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeWelcomeModal();
+            }
+        });
+    }
+    
+    // Show welcome modal on page load
+    setTimeout(showWelcomeModal, 1000); // Show after 1 second delay
+});
+
+// Optional: Reset welcome modal for testing
+// localStorage.removeItem('hasSeenWelcome');
+// localStorage.removeItem('dontShowWelcomeAgain');
   
   function updateClock() {
     const now = new Date();
