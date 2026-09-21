@@ -1174,6 +1174,33 @@ function changeIframeSource() {
         return;
     }
 
+    // List of Scratch game URLs that should open in new tab
+    const scratchGames = [
+        "https://scratch.mit.edu/projects/701435319/", // JJK game
+        "https://scratch.mit.edu/projects/1083783502/", // Culling game
+        "https://scratch.mit.edu/projects/1050193575/", // Shinjuku showdown
+        "https://scratch.mit.edu/projects/1004826310/", // Yuji Itadori n Ryomen Sukuna
+        "https://scratch.mit.edu/projects/479266014/", // Jotaro Kujo
+        "https://scratch.mit.edu/projects/475566185/", // Dio Brando
+        "https://scratch.mit.edu/projects/486826775/"  // Jean Pierre Polnareff
+    ];
+
+    // Check if the URL is a Scratch game
+    if (scratchGames.includes(url)) {
+        // Open Scratch games in a new tab
+        window.open(url, '_blank');
+        console.log('Scratch game opened in new tab:', url);
+        
+        // Clear inputs
+        inputElement.value = '';
+        selectElement.selectedIndex = 0;
+        
+        // Show success message
+        alert("Scratch game opened in new tab! 🎮");
+        return;
+    }
+
+    // For non-Scratch URLs, continue with the original iframe loading
     // Show loading screen
     showLoadingScreen(url);
     
@@ -1243,7 +1270,6 @@ function changeIframeSource() {
         goButton.disabled = false;
     }
 }
-
 // Add event listener for iframe load
 document.addEventListener('DOMContentLoaded', function() {
     const iframe = document.getElementById('iframebox');
