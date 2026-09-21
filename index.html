@@ -890,6 +890,15 @@
         <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
         <option value="https://truffledisgoated.nya.pub/">Truffled</option>
       </optgroup>
+
+      <optgroup label="Scratch">
+        <option value="https://scratch.mit.edu/projects/701435319/">JJK game</option>
+        <option value="https://scratch.mit.edu/projects/1083783502/">Culling game</option>
+        <option value="https://scratch.mit.edu/projects/1050193575/">Shinjuku showdown</option>
+        <option value="https://scratch.mit.edu/projects/1004826310/">Yuji Itadori n Ryomen Sukuna</option>
+        <option value="https://scratch.mit.edu/projects/479266014/">Jotaro Kujo</option>
+        <option value="https://scratch.mit.edu/projects/475566185/">Dio Brando</option>
+        <option value="https://scratch.mit.edu/projects/486826775/">Jean Pierre Polnareff</option>
     </select>
   </div>
 </div>
@@ -918,6 +927,41 @@
   </noscript>
   <!-- End of Statcounter Code -->l>`;
   <script>
+    function checkScratchSelection() {
+    const presetSelect = document.getElementById('presets');
+    const selectedValue = presetSelect.value;
+    
+    // List of Scratch game URLs that should trigger the alert
+    const scratchGames = [
+        "https://scratch.mit.edu/projects/701435319/", // JJK game
+        "https://scratch.mit.edu/projects/1083783502/", // Culling game
+        "https://scratch.mit.edu/projects/1050193575/", // Shinjuku showdown
+        "https://scratch.mit.edu/projects/1004826310/", // Yuji Itadori n Ryomen Sukuna
+        "https://scratch.mit.edu/projects/479266014/", // Jotaro Kujo
+        "https://scratch.mit.edu/projects/475566185/", // Dio Brando
+        "https://scratch.mit.edu/projects/486826775/"  // Jean Pierre Polnareff
+    ];
+    
+    // Check if selected URL is a Scratch game
+    if (scratchGames.includes(selectedValue)) {
+        // Customize this alert message as you like
+        const alertMessage = "Scratch games reccommended and tested by a close friend!";
+        
+        // Show custom alert
+        const userConfirmed = confirm(alertMessage);
+        
+        // If user clicks Cancel, reset the selection
+        if (!userConfirmed) {
+            presetSelect.selectedIndex = 0;
+            const urlInput = document.getElementById('urlInput');
+            if (urlInput) {
+                urlInput.value = '';
+            }
+            return false;
+        }
+    }
+    return true;
+}
     // Welcome Modal Functions
 function showWelcomeModal() {
     // Check if user has visited before
