@@ -1194,6 +1194,26 @@ function changeIframeSource() {
         "https://scratch.mit.edu/projects/486826775/"  // Jean Pierre Polnareff
     ];
 
+    // GitHub links should open directly in a new tab instead of being embedded
+    try {
+        const parsedUrl = new URL(url);
+        if (parsedUrl.hostname === 'github.com' || parsedUrl.hostname.endsWith('.github.com')) {
+            const newTab = window.open(url, '_blank');
+            
+            if (!newTab) {
+                alert("Your browser blocked the new tab. Please allow pop-ups for this site.");
+                return;
+            }
+            
+            console.log('GitHub link opened directly in new tab:', url);
+            inputElement.value = '';
+            selectElement.selectedIndex = 0;
+            return;
+        }
+    } catch (error) {
+        console.error('Invalid URL:', error);
+    }
+
     // Check if the URL is a Scratch game
     if (scratchGames.includes(url)) {
         // Open Scratch games in a new tab
@@ -1209,7 +1229,7 @@ function changeIframeSource() {
         return;
     }
 
-    // For non-Scratch URLs, continue with the original iframe loading
+    // For non-GitHub, non-Scratch URLs, continue with the original iframe loading
     // Show loading screen
     showLoadingScreen(url);
     
