@@ -10,6 +10,7 @@
   <title>Dynamic iframe source</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<style>
 /* Supabase account + moderation UI */
 #accountButton{position:fixed;top:10px;right:165px;z-index:1001;padding:10px 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.75);color:#fff;border:1px solid #4d7cff;cursor:pointer}
 #adminButton{position:fixed;top:55px;right:165px;z-index:1001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
@@ -28,6 +29,7 @@
 .admin-user small{display:block;color:#a9b8e8;margin-top:3px}
 .status-banned{color:#ff8080}.status-active{color:#8dffb0}
 .admin-log{font-size:11px;color:#aebeff;margin-top:14px}
+</style>
 
 </head>
 
@@ -648,8 +650,7 @@
   50% { opacity: 0.5; }
 }
 
-<!-- Add this CSS right before the closing </style> tag -->
-<style>
+<!-- Loading screen styles -->
 /* Loading Screen Styles */
 #loadingScreen {
     position: fixed;
@@ -906,7 +907,7 @@
   <h2>This will be frequently updated depending on how much or how often I get more websites.</h2>
   <h2>Now that I'm aware of it being back to back blocked, within the hour, the hub will be updated for the new website, the new soluton.</h2>
   <h2>You cannot use this for google sites. (google.sites)</h2>
-  <h2><strong>You can share this with all your friends!(Please, do.)</strong></h2></h2>
+  <h2><strong>You can share this with all your friends!(Please, do.)</strong></h2>
   <hr>
 
 <div class="url-input-section">
@@ -987,7 +988,7 @@
   <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
   <a href="https://2706692.playcode.io/" id="redirect-button2">New url hub</a>
   <br>
-<div class="iframe"
+<div class="iframe">
   <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
   </div>
 
@@ -1170,18 +1171,7 @@ var sc_project = 13207478;
 
     animate();
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Add event listener for fullscreen button
-      const fullscreenBtn = document.getElementById('fullscreenBtn');
-      if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        console.log('Fullscreen button event listener added.');
-      } else {
-        console.error('Element with id "fullscreenBtn" not found.');
-      }
-    });
-
-    // Add this JavaScript after your existing changeIframeSource function
+    // Loading screen management
 
 // Loading screen management
 let loadingTips = [
@@ -1317,11 +1307,20 @@ function changeIframeSource() {
         return;
     }
 
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    }[char]));
+    const safeUrl = escapeHtml(url);
+
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dynamic Page - ${url}</title>
+    <title>Dynamic Page - ${safeUrl}</title>
     <style>
         body, html { 
             margin: 0; 
@@ -1338,242 +1337,7 @@ function changeIframeSource() {
     </style>
 </head>
 <body>
-    <iframe src="${url}" allowfullscreen></iframe>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function () {
-  const SUPABASE_URL = "https://dkwmkvruzebnqlmvwzhy.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Tur9X4MaQjH__4DnEtwAAQ_Xy9xVl5P";
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  let signUpMode = false;
-  let currentUser = null;
-
-  const $ = id => document.getElementById(id);
-  const show = id => $(id).classList.add("show");
-  const hide = id => $(id).classList.remove("show");
-  const setError = msg => $("authError").textContent = msg || "";
-
-  function openAuth(signup = false) {
-    signUpMode = signup;
-    $("authTitle").textContent = signup ? "Create Account" : "Log In";
-    $("authSubmit").textContent = signup ? "Create Account" : "Log In";
-    $("authToggle").textContent = signup ? "Back to login" : "Create account";
-    $("authUsername").style.display = signup ? "block" : "none";
-    setError("");
-    show("authOverlay");
-    setTimeout(() => $("authEmail").focus(), 50);
-  }
-
-  function formatBan(until) {
-    if (!until) return "Permanent";
-    const d = new Date(until);
-    return isNaN(d) ? until : d.toLocaleString();
-  }
-
-  async function refreshAccount() {
-    const { data: { session } } = await client.auth.getSession();
-    currentUser = session?.user || null;
-    if (!currentUser) {
-      $("accountButton").textContent = "Log In";
-      $("adminButton").style.display = "none";
-      return;
-    }
-
-    const { data: profile, error } = await client.from("profiles")
-      .select("username,role,banned,ban_reason,banned_until")
-      .eq("id", currentUser.id).maybeSingle();
-
-    if (error) {
-      console.error("Profile lookup failed:", error);
-      return;
-    }
-
-    $("accountButton").textContent = "👤 " + (profile?.username || currentUser.email);
-    const banned = profile?.banned && (!profile.banned_until || new Date(profile.banned_until) > new Date());
-    if (banned) {
-      $("banMessage").textContent =
-        "Reason: " + (profile.ban_reason || "No reason provided.") +
-        " | Until: " + formatBan(profile.banned_until);
-      show("banOverlay");
-      await client.auth.signOut();
-      currentUser = null;
-      $("accountButton").textContent = "Log In";
-      $("adminButton").style.display = "none";
-      return;
-    }
-
-    $("adminButton").style.display = profile?.role === "admin" ? "block" : "none";
-  }
-
-  async function login() {
-    setError("");
-    const email = $("authEmail").value.trim();
-    const password = $("authPassword").value;
-    if (!email || !password) return setError("Enter your email and password.");
-
-    const result = await client.auth.signInWithPassword({ email, password });
-    if (result.error) return setError(result.error.message);
-    hide("authOverlay");
-    await refreshAccount();
-  }
-
-  async function signup() {
-    setError("");
-    const username = $("authUsername").value.trim();
-    const email = $("authEmail").value.trim();
-    const password = $("authPassword").value;
-    if (!username || !email || !password) return setError("Enter a username, email, and password.");
-    if (password.length < 6) return setError("Password must be at least 6 characters.");
-
-    const result = await client.auth.signUp({
-      email, password,
-      options: { data: { username } }
-    });
-    if (result.error) return setError(result.error.message);
-    if (!result.data.session) {
-      setError("Account created. Check your email to verify it, then log in.");
-    } else {
-      hide("authOverlay");
-      await refreshAccount();
-    }
-  }
-
-  async function forgotPassword() {
-    const email = $("authEmail").value.trim();
-    if (!email) return setError("Enter your email first.");
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname
-    });
-    setError(error ? error.message : "Password reset email sent.");
-  }
-
-  async function logout() {
-    await client.auth.signOut();
-    currentUser = null;
-    $("accountButton").textContent = "Log In";
-    $("adminButton").style.display = "none";
-  }
-
-  async function openAdmin() {
-    if (!currentUser) return openAuth(false);
-    show("adminOverlay");
-    await loadAdminUsers();
-    await loadAdminLogs();
-  }
-
-  async function loadAdminLogs() {
-    const box = $("adminLogs");
-    const { data, error } = await client.from("moderation_logs")
-      .select("target_user,moderator,action,reason,banned_until,created_at")
-      .order("created_at", { ascending: false }).limit(50);
-    if (error) {
-      box.textContent = "Moderation history unavailable: " + error.message;
-      return;
-    }
-    box.innerHTML = "<strong>Recent moderation history</strong><br>" +
-      (data?.length ? data.map(log =>
-        escapeHtml(new Date(log.created_at).toLocaleString()) + " · " +
-        escapeHtml(log.action.toUpperCase()) + " · target " +
-        escapeHtml(log.target_user) +
-        (log.reason ? " · " + escapeHtml(log.reason) : "") +
-        (log.banned_until ? " · until " + escapeHtml(formatBan(log.banned_until)) : "")
-      ).join("<br>") : "No moderation actions yet.");
-  }
-
-  async function loadAdminUsers() {
-    const box = $("adminUsers");
-    box.textContent = "Loading users...";
-    const { data, error } = await client.rpc("admin_list_users");
-    if (error) {
-      box.textContent = "Admin access denied: " + error.message;
-      return;
-    }
-    if (!data?.length) {
-      box.textContent = "No accounts yet.";
-      return;
-    }
-    box.innerHTML = data.map(u => {
-      const activeBan = u.banned && (!u.banned_until || new Date(u.banned_until) > new Date());
-      const status = activeBan
-        ? '<span class="status-banned">BANNED</span>'
-        : '<span class="status-active">ACTIVE</span>';
-      const action = u.id === currentUser?.id
-        ? '<span class="auth-note">Your account</span>'
-        : activeBan
-          ? '<button type="button" data-unban="' + u.id + '">Unban</button>'
-          : '<button type="button" data-ban="' + u.id + '">Ban</button>';
-      return '<div class="admin-user"><div><strong>' +
-        escapeHtml(u.username || "(no username)") + '</strong> — ' + escapeHtml(u.email || "") +
-        '<small>' + status + ' · Role: ' + escapeHtml(u.role) +
-        (activeBan ? ' · Until: ' + escapeHtml(formatBan(u.banned_until)) +
-        ' · Reason: ' + escapeHtml(u.ban_reason || "none") : '') +
-        '</small></div><div>' + action + '</div></div>';
-    }).join("");
-
-    box.querySelectorAll("[data-ban]").forEach(btn => btn.onclick = () => banUser(btn.dataset.ban));
-    box.querySelectorAll("[data-unban]").forEach(btn => btn.onclick = () => unbanUser(btn.dataset.unban));
-  }
-
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
-  }
-
-  async function banUser(id) {
-    const reason = prompt("Ban reason (optional):", "Violation of site rules");
-    if (reason === null) return;
-    const duration = prompt("Duration: enter permanent, or hours (e.g. 24 or 168):", "permanent");
-    if (duration === null) return;
-    let until = null;
-    if (duration.toLowerCase() !== "permanent") {
-      const hours = Number(duration);
-      if (!Number.isFinite(hours) || hours <= 0) return alert("Invalid duration.");
-      until = new Date(Date.now() + hours * 3600000).toISOString();
-    }
-    const { error } = await client.rpc("admin_ban_user", {
-      target_user: id, reason, until_time: until
-    });
-    if (error) return alert("Ban failed: " + error.message);
-    await loadAdminUsers();
-  }
-
-  async function unbanUser(id) {
-    if (!confirm("Unban this user?")) return;
-    const { error } = await client.rpc("admin_unban_user", { target_user: id });
-    if (error) return alert("Unban failed: " + error.message);
-    await loadAdminUsers();
-  }
-
-  $("accountButton").onclick = async () => {
-    if (currentUser) {
-      const { data: { session } } = await client.auth.getSession();
-      const choice = confirm("Logged in as " + (currentUser.email || "user") + ".\n\nOK = Log out\nCancel = stay logged in");
-      if (choice && session) await logout();
-    } else {
-      openAuth(false);
-    }
-  };
-  $("adminButton").onclick = openAdmin;
-  $("authSubmit").onclick = () => signUpMode ? signup() : login();
-  $("authToggle").onclick = () => openAuth(!signUpMode);
-  $("authForgot").onclick = forgotPassword;
-  $("authClose").onclick = () => hide("authOverlay");
-  $("banSignOut").onclick = async () => { hide("banOverlay"); await logout(); };
-  $("adminClose").onclick = () => hide("adminOverlay");
-
-  $("authPassword").addEventListener("keydown", e => {
-    if (e.key === "Enter") $("authSubmit").click();
-  });
-
-  client.auth.onAuthStateChange(async () => {
-    await refreshAccount();
-  });
-
-  window.addEventListener("load", refreshAccount);
-})();
-</script>
+    <iframe src="${safeUrl}" allowfullscreen></iframe>
 
 </body>
 </html>`;
@@ -1680,60 +1444,7 @@ window.addEventListener("load", function() {
         localStorage.setItem("hasVisited", "true");
     }
 });
-newTab.document.head.appendChild(script);
-console.log("IT WORKS")
-
-     function checkBannedUser() {
-    // List of banned users
-    window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSdf4R2ONyk7bvfeLboSWpuvfVJ_sqtXPrNcXkeVUiqBxuklPw/viewform?usp=preview";
-    return;
-    const bannedUsers = [
-      "banneduser1@example.com",
-      "spammer@test.com",
-      "blockme@domain.net",
-      "daimen.lawson@smyrnaeagles.org"
-    ];
-
-    // Retrieve banned list from localStorage or initialize
-    let bannedList = JSON.parse(localStorage.getItem('bannedUsers')) || [];
-
-    // Prompt user for email if not already banned
-    if (bannedList.includes('banned')) {
-      // User is already banned
-      window.location.href = "https://google.com";
-      return;
-    }
-
-    let userEmail = window.prompt("Please enter your email to access this page. (I need this to re-send you the site, do NOT fabricate this.)");
-    if (!userEmail) return;
-
-    userEmail = userEmail.toLowerCase().trim();
-
-    // Check if user is in the banned list
-    if (bannedUsers.includes(userEmail)) {
-      // Add user to localStorage banned list
-      bannedList.push(userEmail);
-      localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
-
-      // Redirect banned user
-      window.location.href = "https://google.com";
-    } else {
-      alert("Access granted!");
-    }
-  }
-
-  window.addEventListener("load", function() {
-    console.log('Load event listener triggered.');
-
-    // Existing code...
-    const hasVisited = localStorage.getItem("hasVisited");
-
-    if (localStorage.getItem("hasVisited") === null) {
-      console.log('Alert triggered');
-      checkBannedUser();
-      localStorage.setItem("hasVisited", "true");
-    }
-  });
+  // Account bans are handled by the Supabase moderation system above.
 
   // Add this to make the interface more interactive
 document.addEventListener('DOMContentLoaded', function() {
