@@ -9,6 +9,26 @@
   <meta charset="UTF-8">
   <title>Dynamic iframe source</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+/* Supabase account + moderation UI */
+#accountButton{position:fixed;top:10px;right:165px;z-index:1001;padding:10px 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.75);color:#fff;border:1px solid #4d7cff;cursor:pointer}
+#adminButton{position:fixed;top:55px;right:165px;z-index:1001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
+.auth-overlay{position:fixed;inset:0;background:rgba(0,0,20,.88);backdrop-filter:blur(8px);z-index:20000;display:none;align-items:center;justify-content:center}
+.auth-overlay.show{display:flex}
+.auth-card{width:min(430px,92vw);background:linear-gradient(135deg,#05052c,#00145c);border:1px solid #4d7cff;border-radius:18px;padding:24px;box-shadow:0 0 40px rgba(30,144,255,.35);color:#fff;font-family:"Roboto Mono",monospace}
+.auth-card h2{border:0;background:none;padding:0;margin:0 0 16px;color:#fff}
+.auth-card input{box-sizing:border-box;width:100%;margin:7px 0;padding:12px;border-radius:9px;border:1px solid #7890ff;background:#fff;color:#111}
+.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.auth-actions button{flex:1;padding:11px}
+.auth-secondary{background:#26345f!important;color:#fff!important}
+.auth-error{color:#ff9d9d;min-height:20px;margin-top:8px}
+.auth-note{color:#b9c8ff;font-size:12px;line-height:1.5}
+#adminOverlay .auth-card{width:min(850px,94vw);max-height:82vh;overflow:auto}
+.admin-user{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid rgba(120,150,255,.25);padding:12px;margin:8px 0;border-radius:10px;background:rgba(0,0,0,.25)}
+.admin-user small{display:block;color:#a9b8e8;margin-top:3px}
+.status-banned{color:#ff8080}.status-active{color:#8dffb0}
+.admin-log{font-size:11px;color:#aebeff;margin-top:14px}
+
 </head>
 
 <style>
@@ -771,6 +791,44 @@
 </style>
 
 <body>
+
+<button id="accountButton" type="button">Log In</button>
+<button id="adminButton" type="button">Admin Panel</button>
+
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2 id="authTitle">Log In</h2>
+    <p id="authSubtitle" class="auth-note">Sign in to save your account and use account features.</p>
+    <input id="authUsername" placeholder="Username (sign up only)" autocomplete="username" style="display:none">
+    <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+    <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+    <div class="auth-actions">
+      <button id="authSubmit" type="button">Log In</button>
+      <button id="authToggle" class="auth-secondary" type="button">Create account</button>
+      <button id="authForgot" class="auth-secondary" type="button">Forgot password</button>
+      <button id="authClose" class="auth-secondary" type="button">Close</button>
+    </div>
+    <div id="authError" class="auth-error"></div>
+  </div>
+</div>
+
+<div id="banOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2>🚫 Account Banned</h2>
+    <p id="banMessage" class="auth-note"></p>
+    <div class="auth-actions"><button id="banSignOut" type="button">Sign Out</button></div>
+  </div>
+</div>
+
+<div id="adminOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2>Admin Panel</h2>
+    <p class="auth-note">Manage accounts. Bans are stored in Supabase and enforced for account-protected features.</p>
+    <div id="adminUsers">Loading users...</div>
+    <div class="auth-actions"><button id="adminClose" class="auth-secondary" type="button">Close</button></div>
+  </div>
+</div>
+
   <!-- Welcome Modal -->
 <div id="welcomeModal">
   <div class="welcome-content">
@@ -1275,6 +1333,222 @@ function changeIframeSource() {
 </head>
 <body>
     <iframe src="${url}" allowfullscreen></iframe>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const SUPABASE_URL = "https://dkwmkvruzebnqlmvwzhy.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Tur9X4MaQjH__4DnEtwAAQ_Xy9xVl5P";
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  let signUpMode = false;
+  let currentUser = null;
+
+  const $ = id => document.getElementById(id);
+  const show = id => $(id).classList.add("show");
+  const hide = id => $(id).classList.remove("show");
+  const setError = msg => $("authError").textContent = msg || "";
+
+  function openAuth(signup = false) {
+    signUpMode = signup;
+    $("authTitle").textContent = signup ? "Create Account" : "Log In";
+    $("authSubmit").textContent = signup ? "Create Account" : "Log In";
+    $("authToggle").textContent = signup ? "Back to login" : "Create account";
+    $("authUsername").style.display = signup ? "block" : "none";
+    setError("");
+    show("authOverlay");
+    setTimeout(() => $("authEmail").focus(), 50);
+  }
+
+  function formatBan(until) {
+    if (!until) return "Permanent";
+    const d = new Date(until);
+    return isNaN(d) ? until : d.toLocaleString();
+  }
+
+  async function refreshAccount() {
+    const { data: { session } } = await client.auth.getSession();
+    currentUser = session?.user || null;
+    if (!currentUser) {
+      $("accountButton").textContent = "Log In";
+      $("adminButton").style.display = "none";
+      return;
+    }
+
+    const { data: profile, error } = await client.from("profiles")
+      .select("username,role,banned,ban_reason,banned_until")
+      .eq("id", currentUser.id).maybeSingle();
+
+    if (error) {
+      console.error("Profile lookup failed:", error);
+      return;
+    }
+
+    $("accountButton").textContent = "👤 " + (profile?.username || currentUser.email);
+    const banned = profile?.banned && (!profile.banned_until || new Date(profile.banned_until) > new Date());
+    if (banned) {
+      $("banMessage").textContent =
+        "Reason: " + (profile.ban_reason || "No reason provided.") +
+        " | Until: " + formatBan(profile.banned_until);
+      show("banOverlay");
+      await client.auth.signOut();
+      currentUser = null;
+      $("accountButton").textContent = "Log In";
+      $("adminButton").style.display = "none";
+      return;
+    }
+
+    $("adminButton").style.display = profile?.role === "admin" ? "block" : "none";
+  }
+
+  async function login() {
+    setError("");
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
+    if (!email || !password) return setError("Enter your email and password.");
+
+    const result = await client.auth.signInWithPassword({ email, password });
+    if (result.error) return setError(result.error.message);
+    hide("authOverlay");
+    await refreshAccount();
+  }
+
+  async function signup() {
+    setError("");
+    const username = $("authUsername").value.trim();
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
+    if (!username || !email || !password) return setError("Enter a username, email, and password.");
+    if (password.length < 6) return setError("Password must be at least 6 characters.");
+
+    const result = await client.auth.signUp({
+      email, password,
+      options: { data: { username } }
+    });
+    if (result.error) return setError(result.error.message);
+    if (!result.data.session) {
+      setError("Account created. Check your email to verify it, then log in.");
+    } else {
+      hide("authOverlay");
+      await refreshAccount();
+    }
+  }
+
+  async function forgotPassword() {
+    const email = $("authEmail").value.trim();
+    if (!email) return setError("Enter your email first.");
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    setError(error ? error.message : "Password reset email sent.");
+  }
+
+  async function logout() {
+    await client.auth.signOut();
+    currentUser = null;
+    $("accountButton").textContent = "Log In";
+    $("adminButton").style.display = "none";
+  }
+
+  async function openAdmin() {
+    if (!currentUser) return openAuth(false);
+    show("adminOverlay");
+    await loadAdminUsers();
+  }
+
+  async function loadAdminUsers() {
+    const box = $("adminUsers");
+    box.textContent = "Loading users...";
+    const { data, error } = await client.rpc("admin_list_users");
+    if (error) {
+      box.textContent = "Admin access denied: " + error.message;
+      return;
+    }
+    if (!data?.length) {
+      box.textContent = "No accounts yet.";
+      return;
+    }
+    box.innerHTML = data.map(u => {
+      const activeBan = u.banned && (!u.banned_until || new Date(u.banned_until) > new Date());
+      const status = activeBan
+        ? '<span class="status-banned">BANNED</span>'
+        : '<span class="status-active">ACTIVE</span>';
+      const action = u.id === currentUser?.id
+        ? '<span class="auth-note">Your account</span>'
+        : activeBan
+          ? '<button type="button" data-unban="' + u.id + '">Unban</button>'
+          : '<button type="button" data-ban="' + u.id + '">Ban</button>';
+      return '<div class="admin-user"><div><strong>' +
+        escapeHtml(u.username || "(no username)") + '</strong> — ' + escapeHtml(u.email || "") +
+        '<small>' + status + ' · Role: ' + escapeHtml(u.role) +
+        (activeBan ? ' · Until: ' + escapeHtml(formatBan(u.banned_until)) +
+        ' · Reason: ' + escapeHtml(u.ban_reason || "none") : '') +
+        '</small></div><div>' + action + '</div></div>';
+    }).join("");
+
+    box.querySelectorAll("[data-ban]").forEach(btn => btn.onclick = () => banUser(btn.dataset.ban));
+    box.querySelectorAll("[data-unban]").forEach(btn => btn.onclick = () => unbanUser(btn.dataset.unban));
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  async function banUser(id) {
+    const reason = prompt("Ban reason (optional):", "Violation of site rules");
+    if (reason === null) return;
+    const duration = prompt("Duration: enter permanent, or hours (e.g. 24 or 168):", "permanent");
+    if (duration === null) return;
+    let until = null;
+    if (duration.toLowerCase() !== "permanent") {
+      const hours = Number(duration);
+      if (!Number.isFinite(hours) || hours <= 0) return alert("Invalid duration.");
+      until = new Date(Date.now() + hours * 3600000).toISOString();
+    }
+    const { error } = await client.rpc("admin_ban_user", {
+      target_user: id, reason, until_time: until
+    });
+    if (error) return alert("Ban failed: " + error.message);
+    await loadAdminUsers();
+  }
+
+  async function unbanUser(id) {
+    if (!confirm("Unban this user?")) return;
+    const { error } = await client.rpc("admin_unban_user", { target_user: id });
+    if (error) return alert("Unban failed: " + error.message);
+    await loadAdminUsers();
+  }
+
+  $("accountButton").onclick = async () => {
+    if (currentUser) {
+      const { data: { session } } = await client.auth.getSession();
+      const choice = confirm("Logged in as " + (currentUser.email || "user") + ".\n\nOK = Log out\nCancel = stay logged in");
+      if (choice && session) await logout();
+    } else {
+      openAuth(false);
+    }
+  };
+  $("adminButton").onclick = openAdmin;
+  $("authSubmit").onclick = () => signUpMode ? signup() : login();
+  $("authToggle").onclick = () => openAuth(!signUpMode);
+  $("authForgot").onclick = forgotPassword;
+  $("authClose").onclick = () => hide("authOverlay");
+  $("banSignOut").onclick = async () => { hide("banOverlay"); await logout(); };
+  $("adminClose").onclick = () => hide("adminOverlay");
+
+  $("authPassword").addEventListener("keydown", e => {
+    if (e.key === "Enter") $("authSubmit").click();
+  });
+
+  client.auth.onAuthStateChange(async () => {
+    await refreshAccount();
+  });
+
+  window.addEventListener("load", refreshAccount);
+})();
+</script>
+
 </body>
 </html>`;
 
