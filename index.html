@@ -1059,7 +1059,7 @@
       const username=$("authUsername").value.trim();
       if(!username){error("Enter a username.");return;}
       if(password.length<6){error("Password must be at least 6 characters.");return;}
-      const {data,error:e}=await client.auth.signUp({email,password,options:{data:{username}}});
+      const {data,error:e}=await client.auth.signUp({email,password,options:{data:{username},emailRedirectTo:"https://idkeman.github.io/website-load/"}});
       if(e){error(e.message);return;}
       if(data.session){hide("authOverlay");await refreshAccount();}
       else error("Account created. Check your email to verify it, then log in.");
@@ -1073,7 +1073,7 @@
   async function forgotPassword(){
     const email=$("authEmail").value.trim();
     if(!email){error("Enter your email first.");return;}
-    const {error:e}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href.split("#")[0]});
+    const {error:e}=await client.auth.resetPasswordForEmail(email,{redirectTo:"https://idkeman.github.io/website-load/"});
     error(e?e.message:"Password reset email sent.");
   }
 
