@@ -1023,12 +1023,18 @@
     const overlay=$("authOverlay");
     if(!overlay) return;
     overlay.classList.toggle("auth-gate",!!locked);
+    document.body.classList.toggle("auth-locked",!!locked);
+
+    Array.from(document.body.children).forEach(function(el){
+      if(el===overlay || el.id==="banOverlay" || el.id==="adminOverlay" || el.tagName==="SCRIPT" || el.tagName==="STYLE") return;
+      if(locked) el.setAttribute("inert","");
+      else el.removeAttribute("inert");
+    });
+
     if(locked) {
       openAuth(false);
       show("authOverlay");
       $("authSubtitle").textContent="You must log in to use this site.";
-    } else {
-      overlay.classList.remove("auth-gate");
     }
   }
 
