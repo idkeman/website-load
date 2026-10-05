@@ -20,6 +20,9 @@
 #authOverlay.auth-gate #authClose{display:none}
 .auth-card{width:min(430px,92vw);background:linear-gradient(135deg,#05052c,#00145c);border:1px solid #4d7cff;border-radius:18px;padding:24px;box-shadow:0 0 40px rgba(30,144,255,.35);color:#fff;font-family:"Roboto Mono",monospace}
 .auth-card h2{border:0;background:none;padding:0;margin:0 0 16px;color:#fff}
+#recordingSection{display:none;max-width:900px;margin:30px auto;padding:20px;border:1px solid rgba(120,150,255,.35);border-radius:16px;background:rgba(0,0,0,.3);box-shadow:0 0 24px rgba(0,120,255,.2)}
+#recordingSection h2{border:0;margin:0 0 12px;padding:0;background:none;font-size:20px}
+#siteRecording{display:block;width:100%;max-height:70vh;border-radius:10px;background:#000}
 .auth-card input{box-sizing:border-box;width:100%;margin:7px 0;padding:12px;border-radius:9px;border:1px solid #7890ff;background:#fff;color:#111}
 .auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .auth-actions button{flex:1;padding:11px}
@@ -994,6 +997,18 @@
   <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
   </div>
 
+  <section id="recordingSection">
+    <h2>Site Recording</h2>
+    <video id="siteRecording" controls playsinline preload="metadata"></video>
+  </section>
+
+  <!-- Recording asset parts -->
+  <script src="./recording-part0.js"></script>
+  <script src="./recording-part1.js"></script>
+  <script src="./recording-part2.js"></script>
+  <script src="./recording-part3.js"></script>
+  <script src="./recording-part4.js"></script>
+
   <!-- Chatbot script -->
 
 
@@ -1055,6 +1070,7 @@
     if(!currentUser){
       $("accountButton").textContent="Log In";
       $("adminButton").style.display="none";
+      setRecordingVisible(false);
       setAuthGate(true);
       return;
     }
@@ -1071,6 +1087,7 @@
     }
     $("accountButton").textContent="👤 "+(p?.username||currentUser.email||"Account");
     $("adminButton").style.display=p?.role==="admin"?"block":"none";
+    setRecordingVisible(true);
     setAuthGate(false);
     hide("authOverlay");
   }
@@ -1134,6 +1151,25 @@
     const {error:e}=await client.rpc("admin_unban_user",{target_user:id});
     if(e)alert("Unban failed: "+e.message); else {await loadUsers();await loadLogs();}
   }
+  function setupRecording(){
+    const video=$("siteRecording");
+    if(!video||!Array.isArray(window.RECORDING_PARTS)||window.RECORDING_PARTS.length<5)return;
+    try{
+      const b64=window.RECORDING_PARTS.join("");
+      const raw=atob(b64);
+      const bytes=new Uint8Array(raw.length);
+      for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+      video.src=URL.createObjectURL(new Blob([bytes],{type:"video/webm"}));
+    }catch(e){console.error("Recording failed to initialize",e);}
+  }
+  function setRecordingVisible(visible){
+    const section=$("recordingSection");
+    if(!section)return;
+    section.style.display=visible?"block":"none";
+    if(visible) setupRecording();
+    else if($("siteRecording")){$("siteRecording").pause();$("siteRecording").removeAttribute("src");}
+  }
+
   function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
   function init(){
