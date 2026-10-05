@@ -806,10 +806,12 @@
     <h2 id="authTitle">Log In</h2>
     <p id="authSubtitle" class="auth-note">Sign in to save your account and use account features.</p>
     <input id="authUsername" placeholder="Username (sign up only)" autocomplete="username" style="display:none">
-    <input id="authEmail" type="email" placeholder="Personal email" autocomplete="email">\n    <p class="auth-note">Please use a personal email address for your account.</p>
+    <input id="authEmail" type="email" placeholder="Personal email" autocomplete="email">
+    <p class="auth-note">Please use a personal email address for your account.</p>
     <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
     <div class="auth-actions">
       <button id="authSubmit" type="button">Log In</button>
+      <button id="authGoogle" class="auth-secondary" type="button">🔵 Continue with Google</button>
       <button id="authToggle" class="auth-secondary" type="button">Create account</button>
       <button id="authForgot" class="auth-secondary" type="button">Forgot password</button>
       <button id="authClose" class="auth-secondary" type="button">Close</button>
@@ -1111,6 +1113,12 @@
     }
   }
 
+  async function signInWithGoogle(){
+    error("");
+    const {error:e}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:"https://idkeman.github.io/website-load/"}});
+    if(e)error(e.message);
+  }
+
   async function forgotPassword(){
     const email=$("authEmail").value.trim();
     if(!email){error("Enter your email first.");return;}
@@ -1180,6 +1188,7 @@
     $("authSubmit").onclick=submitAuth;
     $("authToggle").onclick=()=>openAuth(!signupMode);
     $("authForgot").onclick=forgotPassword;
+    $("authGoogle").onclick=signInWithGoogle;
     $("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
     $("adminClose").onclick=()=>hide("adminOverlay");
     $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
