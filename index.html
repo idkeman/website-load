@@ -1488,18 +1488,7 @@ function changeIframeSource() {
 <body>
     <iframe src="${safeUrl}" allowfullscreen></iframe>
 
-<script>
-document.addEventListener("DOMContentLoaded",function(){
-  const screen=document.getElementById("loadingScreen");
-  if(screen){
-    setTimeout(function(){screen.classList.add("hidden");},1200);
-  }
-});
-window.addEventListener("load",function(){
-  const screen=document.getElementById("loadingScreen");
-  if(screen) setTimeout(function(){screen.classList.add("hidden");},300);
-});
-</script>
+<!-- The destination page is loaded directly in the iframe. -->
 </body>
 </html>`;
 
