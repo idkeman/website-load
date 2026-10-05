@@ -824,7 +824,7 @@
   <div class="auth-card">
     <h2>Admin Panel</h2>
     <p class="auth-note">Manage accounts. Bans are stored in Supabase and enforced for account-protected features.</p>
-    <div id="adminUsers">Loading users...</div>
+    <div id="adminUsers">Loading users...</div><div class="admin-log" id="adminLogs">Loading moderation history...</div>
     <div class="auth-actions"><button id="adminClose" class="auth-secondary" type="button">Close</button></div>
   </div>
 </div>
@@ -1453,9 +1453,10 @@ function changeIframeSource() {
     if (!currentUser) return openAuth(false);
     show("adminOverlay");
     await loadAdminUsers();
+    await loadAdminLogs();
   }
 
-  async function loadAdminUsers() {
+  async function loadAdminLogs() {
     const box = $("adminUsers");
     box.textContent = "Loading users...";
     const { data, error } = await client.rpc("admin_list_users");
