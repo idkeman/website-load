@@ -1002,7 +1002,136 @@
     <div class="statcounter"><a title="site stats" href="https://statcounter.com/" target="_blank"><img class="statcounter" src="https://c.statcounter.com/13207478/0/851258fd/1/" alt="site stats" referrerPolicy="no-referrer-when-downgrade"></a></div>
   </noscript>
   <!-- End of Statcounter Code -->l>`;
-  <script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+  const SUPABASE_URL = "https://dkwmkvruzebnqlmvwzhy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_Tur9X4MaQjH__4DnEtwAAQ_Xy9xVl5P";
+  let client = null;
+  let currentUser = null;
+  let signupMode = false;
+
+  function $(id) { return document.getElementById(id); }
+  function show(id) { const el=$(id); if(el) el.classList.add("show"); }
+  function hide(id) { const el=$(id); if(el) el.classList.remove("show"); }
+  function error(msg) { if($("authError")) $("authError").textContent=msg||""; }
+
+  function openAuth(signup) {
+    signupMode=!!signup;
+    $("authTitle").textContent=signupMode?"Create Account":"Log In";
+    $("authSubmit").textContent=signupMode?"Create Account":"Log In";
+    $("authToggle").textContent=signupMode?"Back to login":"Create account";
+    $("authUsername").style.display=signupMode?"block":"none";
+    error("");
+    show("authOverlay");
+  }
+
+  async function refreshAccount() {
+    if (!client) return;
+    const {data:{session}}=await client.auth.getSession();
+    currentUser=session?.user||null;
+    if(!currentUser){
+      $("accountButton").textContent="Log In";
+      $("adminButton").style.display="none";
+      return;
+    }
+    const {data:p,error:e}=await client.from("profiles")
+      .select("username,role,banned,ban_reason,banned_until").eq("id",currentUser.id).maybeSingle();
+    if(e){ console.error("Profile lookup failed",e); return; }
+    const activeBan=!!(p?.banned && (!p.banned_until || new Date(p.banned_until)>new Date()));
+    if(activeBan){
+      $("banMessage").textContent="Reason: "+(p.ban_reason||"No reason provided.")+" | Until: "+(p.banned_until?new Date(p.banned_until).toLocaleString():"Permanent");
+      await client.auth.signOut();
+      currentUser=null;
+      show("banOverlay");
+      return;
+    }
+    $("accountButton").textContent="👤 "+(p?.username||currentUser.email||"Account");
+    $("adminButton").style.display=p?.role==="admin"?"block":"none";
+  }
+
+  async function submitAuth(){
+    error("");
+    const email=$("authEmail").value.trim(), password=$("authPassword").value;
+    if(!email||!password){error("Enter your email and password.");return;}
+    if(signupMode){
+      const username=$("authUsername").value.trim();
+      if(!username){error("Enter a username.");return;}
+      if(password.length<6){error("Password must be at least 6 characters.");return;}
+      const {data,error:e}=await client.auth.signUp({email,password,options:{data:{username}}});
+      if(e){error(e.message);return;}
+      if(data.session){hide("authOverlay");await refreshAccount();}
+      else error("Account created. Check your email to verify it, then log in.");
+    } else {
+      const {error:e}=await client.auth.signInWithPassword({email,password});
+      if(e){error(e.message);return;}
+      hide("authOverlay"); await refreshAccount();
+    }
+  }
+
+  async function forgotPassword(){
+    const email=$("authEmail").value.trim();
+    if(!email){error("Enter your email first.");return;}
+    const {error:e}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href.split("#")[0]});
+    error(e?e.message:"Password reset email sent.");
+  }
+
+  async function loadUsers(){
+    const box=$("adminUsers");
+    const {data,error:e}=await client.rpc("admin_list_users");
+    if(e){box.textContent="Admin access denied: "+e.message;return;}
+    box.innerHTML=(data||[]).map(u=>{
+      const banned=u.banned&&(!u.banned_until||new Date(u.banned_until)>new Date());
+      return '<div class="admin-user"><div><strong>'+esc(u.username||"(no username)")+
+      '</strong> — '+esc(u.email||"")+'<small class="'+(banned?"status-banned":"status-active")+'">'+
+      (banned?"BANNED":"ACTIVE")+' · '+esc(u.role)+(banned?" · "+esc(u.ban_reason||"No reason")+" · "+esc(u.banned_until?new Date(u.banned_until).toLocaleString():"Permanent"):"")+
+      '</small></div><div>'+(u.id===currentUser?.id?"Your account":banned?'<button data-unban="'+u.id+'">Unban</button>':'<button data-ban="'+u.id+'">Ban</button>')+'</div></div>';
+    }).join("")||"No accounts yet.";
+    box.querySelectorAll("[data-ban]").forEach(b=>b.onclick=()=>ban(b.dataset.ban));
+    box.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>unban(b.dataset.unban));
+  }
+  async function loadLogs(){
+    const box=$("adminLogs");
+    const {data,error:e}=await client.from("moderation_logs").select("target_user,action,reason,banned_until,created_at").order("created_at",{ascending:false}).limit(50);
+    if(e){box.textContent="Moderation history unavailable: "+e.message;return;}
+    box.innerHTML="<strong>Recent moderation history</strong><br>"+((data||[]).map(x=>esc(new Date(x.created_at).toLocaleString())+" · "+esc(x.action.toUpperCase())+" · "+esc(x.target_user)+(x.reason?" · "+esc(x.reason):"")+(x.banned_until?" · until "+esc(new Date(x.banned_until).toLocaleString()):"")).join("<br>")||"No moderation actions yet.");
+  }
+  async function ban(id){
+    const reason=prompt("Ban reason (optional):","Violation of site rules"); if(reason===null)return;
+    const d=prompt("Duration: permanent or hours (example: 24 or 168):","permanent"); if(d===null)return;
+    let until=null;
+    if(d.toLowerCase()!=="permanent"){const h=Number(d);if(!Number.isFinite(h)||h<=0){alert("Invalid duration.");return;}until=new Date(Date.now()+h*3600000).toISOString();}
+    const {error:e}=await client.rpc("admin_ban_user",{target_user:id,reason,until_time:until});
+    if(e)alert("Ban failed: "+e.message); else {await loadUsers();await loadLogs();}
+  }
+  async function unban(id){
+    if(!confirm("Unban this user?"))return;
+    const {error:e}=await client.rpc("admin_unban_user",{target_user:id});
+    if(e)alert("Unban failed: "+e.message); else {await loadUsers();await loadLogs();}
+  }
+  function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+  function init(){
+    if(!window.supabase){console.error("Supabase library failed to load.");return;}
+    client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    $("accountButton").onclick=()=>currentUser?confirm("Log out of "+(currentUser.email||"this account")+"?")&&client.auth.signOut():openAuth(false);
+    $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();};
+    $("authSubmit").onclick=submitAuth;
+    $("authToggle").onclick=()=>openAuth(!signupMode);
+    $("authForgot").onclick=forgotPassword;
+    $("authClose").onclick=()=>hide("authOverlay");
+    $("adminClose").onclick=()=>hide("adminOverlay");
+    $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
+    $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
+    client.auth.onAuthStateChange(()=>refreshAccount());
+    refreshAccount();
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+</script>
+
+<script>
     function checkScratchSelection() {
     const presetSelect = document.getElementById('presets');
     const selectedValue = presetSelect.value;
@@ -1339,6 +1468,18 @@ function changeIframeSource() {
 <body>
     <iframe src="${safeUrl}" allowfullscreen></iframe>
 
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  const screen=document.getElementById("loadingScreen");
+  if(screen){
+    setTimeout(function(){screen.classList.add("hidden");},1200);
+  }
+});
+window.addEventListener("load",function(){
+  const screen=document.getElementById("loadingScreen");
+  if(screen) setTimeout(function(){screen.classList.add("hidden");},300);
+});
+</script>
 </body>
 </html>`;
 
