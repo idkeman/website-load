@@ -811,7 +811,7 @@
     <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
     <div class="auth-actions">
       <button id="authSubmit" type="button">Log In</button>
-      <button id="authGoogle" class="auth-secondary" type="button">🔵 Continue with Google</button>
+
       <button id="authToggle" class="auth-secondary" type="button">Create account</button>
       <button id="authForgot" class="auth-secondary" type="button">Forgot password</button>
       <button id="authClose" class="auth-secondary" type="button">Close</button>
@@ -1112,10 +1112,7 @@
       hide("authOverlay"); await refreshAccount();
     }
   }
-
-  async function signInWithGoogle(){
-    error("");
-    const {error:e}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:"https://idkeman.github.io/website-load/"}});
+=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:"https://idkeman.github.io/website-load/"}});
     if(e)error(e.message);
   }
 
@@ -1187,9 +1184,7 @@
     $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();};
     $("authSubmit").onclick=submitAuth;
     $("authToggle").onclick=()=>openAuth(!signupMode);
-    $("authForgot").onclick=forgotPassword;
-    $("authGoogle").onclick=signInWithGoogle;
-    $("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
+    $("authForgot").onclick=forgotPassword;$("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
     $("adminClose").onclick=()=>hide("adminOverlay");
     $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
     $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
