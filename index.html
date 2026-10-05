@@ -1457,6 +1457,25 @@ function changeIframeSource() {
   }
 
   async function loadAdminLogs() {
+    const box = $("adminLogs");
+    const { data, error } = await client.from("moderation_logs")
+      .select("target_user,moderator,action,reason,banned_until,created_at")
+      .order("created_at", { ascending: false }).limit(50);
+    if (error) {
+      box.textContent = "Moderation history unavailable: " + error.message;
+      return;
+    }
+    box.innerHTML = "<strong>Recent moderation history</strong><br>" +
+      (data?.length ? data.map(log =>
+        escapeHtml(new Date(log.created_at).toLocaleString()) + " · " +
+        escapeHtml(log.action.toUpperCase()) + " · target " +
+        escapeHtml(log.target_user) +
+        (log.reason ? " · " + escapeHtml(log.reason) : "") +
+        (log.banned_until ? " · until " + escapeHtml(formatBan(log.banned_until)) : "")
+      ).join("<br>") : "No moderation actions yet.");
+  }
+
+  async function loadAdminUsers() {
     const box = $("adminUsers");
     box.textContent = "Loading users...";
     const { data, error } = await client.rpc("admin_list_users");
