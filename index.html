@@ -16,6 +16,8 @@
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
 .auth-overlay{position:fixed;inset:0;background:rgba(0,0,20,.88);backdrop-filter:blur(8px);z-index:20000;display:none;align-items:center;justify-content:center}
 .auth-overlay.show{display:flex}
+#authOverlay.auth-gate{display:flex;z-index:30000}
+#authOverlay.auth-gate #authClose{display:none}
 .auth-card{width:min(430px,92vw);background:linear-gradient(135deg,#05052c,#00145c);border:1px solid #4d7cff;border-radius:18px;padding:24px;box-shadow:0 0 40px rgba(30,144,255,.35);color:#fff;font-family:"Roboto Mono",monospace}
 .auth-card h2{border:0;background:none;padding:0;margin:0 0 16px;color:#fff}
 .auth-card input{box-sizing:border-box;width:100%;margin:7px 0;padding:12px;border-radius:9px;border:1px solid #7890ff;background:#fff;color:#111}
@@ -1017,6 +1019,19 @@
   function hide(id) { const el=$(id); if(el) el.classList.remove("show"); }
   function error(msg) { if($("authError")) $("authError").textContent=msg||""; }
 
+  function setAuthGate(locked) {
+    const overlay=$("authOverlay");
+    if(!overlay) return;
+    overlay.classList.toggle("auth-gate",!!locked);
+    if(locked) {
+      openAuth(false);
+      show("authOverlay");
+      $("authSubtitle").textContent="You must log in to use this site.";
+    } else {
+      overlay.classList.remove("auth-gate");
+    }
+  }
+
   function openAuth(signup) {
     signupMode=!!signup;
     $("authTitle").textContent=signupMode?"Create Account":"Log In";
@@ -1034,6 +1049,7 @@
     if(!currentUser){
       $("accountButton").textContent="Log In";
       $("adminButton").style.display="none";
+      setAuthGate(true);
       return;
     }
     const {data:p,error:e}=await client.from("profiles")
@@ -1049,6 +1065,8 @@
     }
     $("accountButton").textContent="👤 "+(p?.username||currentUser.email||"Account");
     $("adminButton").style.display=p?.role==="admin"?"block":"none";
+    setAuthGate(false);
+    hide("authOverlay");
   }
 
   async function submitAuth(){
@@ -1120,7 +1138,7 @@
     $("authSubmit").onclick=submitAuth;
     $("authToggle").onclick=()=>openAuth(!signupMode);
     $("authForgot").onclick=forgotPassword;
-    $("authClose").onclick=()=>hide("authOverlay");
+    $("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
     $("adminClose").onclick=()=>hide("adminOverlay");
     $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
     $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
