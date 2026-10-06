@@ -34,6 +34,19 @@
 .admin-user small{display:block;color:#a9b8e8;margin-top:3px}
 .status-banned{color:#ff8080}.status-active{color:#8dffb0}
 .admin-log{font-size:11px;color:#aebeff;margin-top:14px}
+.admin-tools{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.4fr);gap:14px;margin-top:14px}
+.admin-tool{border:1px solid rgba(120,150,255,.25);padding:12px;border-radius:12px;background:rgba(0,0,0,.22)}
+.admin-tool h3{margin:0 0 10px;color:#fff}
+.admin-chat-list{max-height:260px;overflow:auto}
+.admin-chat-user{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px;border-bottom:1px solid rgba(120,150,255,.14)}
+.admin-chat-user button{padding:6px 9px}
+.admin-chat-history{height:240px;overflow:auto;padding:8px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
+.admin-chat-msg{margin:6px 0;padding:7px 9px;border-radius:8px;background:rgba(40,70,150,.22)}
+.admin-chat-msg small{display:block;color:#9fb1e8;font-size:10px;margin-bottom:3px}
+.admin-chat-compose{display:flex;gap:8px;margin-top:8px}
+.admin-chat-compose textarea{flex:1;min-height:70px;resize:vertical;box-sizing:border-box;padding:9px;border-radius:8px;border:1px solid #7890ff}
+.admin-verified{color:#7fffb0;font-weight:700}
+@media(max-width:700px){.admin-tools{grid-template-columns:1fr}.admin-chat-compose{flex-direction:column}}
 </style>
 
 </head>
@@ -832,7 +845,24 @@
   <div class="auth-card">
     <h2>Admin Panel</h2>
     <p class="auth-note">Manage accounts. Bans are stored in Supabase and enforced for account-protected features.</p>
-    <div id="adminUsers">Loading users...</div><div class="admin-log" id="adminLogs">Loading moderation history...</div>
+    <div id="adminUsers">Loading users...</div>
+    <div class="admin-tools">
+      <section class="admin-tool">
+        <h3>💬 Direct Chat</h3>
+        <p class="auth-note">Admin-only direct messages to a selected user.</p>
+        <div id="adminChatUsers" class="admin-chat-list">Loading users...</div>
+      </section>
+      <section class="admin-tool">
+        <h3 id="adminChatTitle">Select a user</h3>
+        <div id="adminChatHistory" class="admin-chat-history">Choose a user to view the conversation.</div>
+        <div class="admin-chat-compose">
+          <textarea id="adminChatInput" maxlength="4000" placeholder="Write a message..." disabled></textarea>
+          <button id="adminChatSend" type="button" disabled>Send</button>
+        </div>
+        <div id="adminChatError" class="auth-error"></div>
+      </section>
+    </div>
+    <div class="admin-log" id="adminLogs">Loading moderation history...</div>
     <div class="auth-actions"><button id="adminClose" class="auth-secondary" type="button">Close</button></div>
   </div>
 </div>
@@ -1121,19 +1151,66 @@
     error(e?e.message:"Password reset email sent.");
   }
 
+  let adminUsersCache=[];
+  let selectedChatUser=null;
   async function loadUsers(){
     const box=$("adminUsers");
     const {data,error:e}=await client.rpc("admin_list_users");
     if(e){box.textContent="Admin access denied: "+e.message;return;}
-    box.innerHTML=(data||[]).map(u=>{
+    adminUsersCache=data||[];
+    box.innerHTML=adminUsersCache.map(u=>{
       const banned=u.banned&&(!u.banned_until||new Date(u.banned_until)>new Date());
+      const verified=!!u.verified;
       return '<div class="admin-user"><div><strong>'+esc(u.username||"(no username)")+
       '</strong> — '+esc(u.email||"")+'<small class="'+(banned?"status-banned":"status-active")+'">'+
-      (banned?"BANNED":"ACTIVE")+' · '+esc(u.role)+(banned?" · "+esc(u.ban_reason||"No reason")+" · "+esc(u.banned_until?new Date(u.banned_until).toLocaleString():"Permanent"):"")+
-      '</small></div><div>'+(u.id===currentUser?.id?"Your account":banned?'<button data-unban="'+u.id+'">Unban</button>':'<button data-ban="'+u.id+'">Ban</button>')+'</div></div>';
+      (banned?"BANNED":"ACTIVE")+' · '+esc(u.role)+(verified?' · <span class="admin-verified">✓ VERIFIED</span>':'')+
+      (banned?" · "+esc(u.ban_reason||"No reason")+" · "+esc(u.banned_until?new Date(u.banned_until).toLocaleString():"Permanent"):"")+
+      '</small></div><div>'+(u.id===currentUser?.id?"Your account":
+      (verified?'<button data-unverify="'+u.id+'">Unverify</button>':'<button data-verify="'+u.id+'">Verify</button>')+
+      (banned?'<button data-unban="'+u.id+'">Unban</button>':'<button data-ban="'+u.id+'">Ban</button>')+
+      '<button data-chat="'+u.id+'">Chat</button>')+'</div></div>';
     }).join("")||"No accounts yet.";
     box.querySelectorAll("[data-ban]").forEach(b=>b.onclick=()=>ban(b.dataset.ban));
     box.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>unban(b.dataset.unban));
+    box.querySelectorAll("[data-verify]").forEach(b=>b.onclick=()=>setVerified(b.dataset.verify,true));
+    box.querySelectorAll("[data-unverify]").forEach(b=>b.onclick=()=>setVerified(b.dataset.unverify,false));
+    renderChatUsers();
+  }
+  function renderChatUsers(){
+    const box=$("adminChatUsers"); if(!box)return;
+    box.innerHTML=adminUsersCache.filter(u=>u.id!==currentUser?.id).map(u=>
+      '<div class="admin-chat-user"><span>'+esc(u.username||"(no username)")+'<br><small>'+esc(u.email||"")+'</small></span><button data-chat-user="'+u.id+'">Chat</button></div>'
+    ).join("")||" No other users.";
+    box.querySelectorAll("[data-chat-user]").forEach(b=>b.onclick=()=>openChat(b.dataset.chatUser));
+  }
+  async function setVerified(id,value){
+    const {error:e}=await client.rpc("admin_set_verified",{target_user:id,verified_value:value});
+    if(e){alert((value?"Verification":"Unverification")+" failed: "+e.message);return;}
+    await loadUsers();
+  }
+  async function openChat(id){
+    selectedChatUser=adminUsersCache.find(u=>u.id===id)||null;
+    $("adminChatTitle").textContent=selectedChatUser?"💬 "+(selectedChatUser.username||selectedChatUser.email||"User"):"Select a user";
+    $("adminChatInput").disabled=!selectedChatUser;
+    $("adminChatSend").disabled=!selectedChatUser;
+    await loadChat();
+  }
+  async function loadChat(){
+    const box=$("adminChatHistory");
+    if(!selectedChatUser){box.textContent="Choose a user to view the conversation.";return;}
+    const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
+    if(e){box.textContent="Chat unavailable: "+e.message;return;}
+    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.admin_id===currentUser?.id?"You":(selectedChatUser.username||"Admin"))+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
+    box.scrollTop=box.scrollHeight;
+  }
+  async function sendChat(){
+    if(!selectedChatUser)return;
+    const input=$("adminChatInput"), message=input.value.trim();
+    if(!message)return;
+    $("adminChatError").textContent="";
+    const {error:e}=await client.from("admin_messages").insert({user_id:selectedChatUser.id,admin_id:currentUser.id,message});
+    if(e){$("adminChatError").textContent="Send failed: "+e.message;return;}
+    input.value=""; await loadChat();
   }
   async function loadLogs(){
     const box=$("adminLogs");
@@ -1180,6 +1257,8 @@
     client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     $("accountButton").onclick=()=>currentUser?confirm("Log out of "+(currentUser.email||"this account")+"?")&&client.auth.signOut():openAuth(false);
     $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();};
+    $("adminChatSend").onclick=sendChat;
+    $("adminChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}};
     $("authSubmit").onclick=submitAuth;
     $("authToggle").onclick=()=>openAuth(!signupMode);
     $("authForgot").onclick=forgotPassword;$("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
