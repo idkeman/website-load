@@ -1540,18 +1540,25 @@ function changeIframeSource() {
         "https://scratch.mit.edu/projects/486826775/"  // Jean Pierre Polnareff
     ];
 
-    // GitHub links should open directly in a new tab instead of being embedded
+    // GitHub and GitHub Pages links should open the exact URL directly in a new tab.
     try {
         const parsedUrl = new URL(url);
-        if (parsedUrl.hostname === 'github.com' || parsedUrl.hostname.endsWith('.github.com')) {
+        const isGitHubLink =
+            parsedUrl.hostname === 'github.com' ||
+            parsedUrl.hostname.endsWith('.github.com');
+        const isGitHubPagesLink =
+            parsedUrl.hostname === 'github.io' ||
+            parsedUrl.hostname.endsWith('.github.io');
+
+        if (isGitHubLink || isGitHubPagesLink) {
             const newTab = window.open(url, '_blank');
-            
+
             if (!newTab) {
                 alert("Your browser blocked the new tab. Please allow pop-ups for this site.");
                 return;
             }
-            
-            console.log('GitHub link opened directly in new tab:', url);
+
+            console.log('GitHub/GitHub Pages link opened directly in new tab:', url);
             inputElement.value = '';
             selectElement.selectedIndex = 0;
             return;
