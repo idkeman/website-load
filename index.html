@@ -1138,8 +1138,23 @@
       if(password.length<6){error("Password must be at least 6 characters.");return;}
       const {data,error:e}=await client.auth.signUp({email,password,options:{data:{username},emailRedirectTo:"https://idkeman.github.io/website-load/"}});
       if(e){error(e.message);return;}
-      if(data.session){hide("authOverlay");await refreshAccount();}
-      else error("Account created. Check your email to verify it, then log in.");
+      // With Confirm email disabled, signUp normally returns a session. If this
+      // project returns only a user (for example, another confirmation setting
+      // is still active), explicitly attempt password sign-in before showing an error.
+      if(!data.session){
+        const {data:loginData,error:loginError}=await client.auth.signInWithPassword({email,password});
+        if(loginError){
+          const msg=loginError.message||"Unknown sign-in error.";
+          error(/email not confirmed/i.test(msg)
+            ? "Supabase is still requiring email confirmation for this account. Check the Email provider's Confirm email setting (and any phone-confirmation requirement)."
+            : "Account created, but automatic sign-in failed: "+msg);
+          return;
+        }
+        if(!loginData.session){error("Account created, but Supabase did not return a sign-in session. Try logging in once; if it fails, check the project's Auth provider settings.");return;}
+      }
+      await refreshAccount();
+      if(currentUser) hide("authOverlay");
+      else error("Signed in, but the account could not be loaded. Reload the page and try again.");
     } else {
       const {error:e}=await client.auth.signInWithPassword({email,password});
       if(e){error(e.message);return;}
