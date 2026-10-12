@@ -632,6 +632,27 @@
   }
 }
 
+.direct-tab-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto 12px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.direct-tab-option input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
 .go-button {
   width: 100%;
   padding: 14px;
@@ -1021,6 +1042,11 @@
     </select>
   </div>
 </div>
+
+  <label class="direct-tab-option" for="openBaseUrlInNewTab">
+    <input type="checkbox" id="openBaseUrlInNewTab">
+    Open URL directly in a new tab (base URL only)
+  </label>
 
 <button onclick="changeIframeSource()" id="goButton" class="go-button">
   <span>Go to URL</span>
@@ -1546,6 +1572,21 @@ function changeIframeSource() {
     if (!url.startsWith("https://")) {
         alert("MUST HAVE https:// AT START");
         console.log('Invalid URL (missing https://):', url);
+        return;
+    }
+
+    // Optional direct mode: open the selected/input URL itself, without an iframe wrapper.
+    const openBaseUrlDirectly = document.getElementById("openBaseUrlInNewTab");
+    if (openBaseUrlDirectly && openBaseUrlDirectly.checked) {
+        const directTab = window.open(url, "_blank");
+        if (directTab) directTab.opener = null;
+        if (!directTab) {
+            alert("Your browser blocked the new tab. Please allow pop-ups for this site.");
+            return;
+        }
+        console.log("Opened base URL directly in a new tab:", url);
+        inputElement.value = "";
+        selectElement.selectedIndex = 0;
         return;
     }
 
