@@ -14,6 +14,16 @@
 /* Supabase account + moderation UI */
 #accountButton{position:fixed;top:10px;right:165px;z-index:10001;padding:10px 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.75);color:#fff;border:1px solid #4d7cff;cursor:pointer}
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
+#userChatButton,#recommendButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:none;cursor:pointer}
+#userChatButton{top:100px}#recommendButton{top:145px;background:#164e86}
+#userChatOverlay .auth-card,#recommendOverlay .auth-card{width:min(650px,94vw)}
+#userChatHistory{height:300px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
+.user-chat-compose{display:flex;gap:8px;margin-top:10px}
+.user-chat-compose textarea{flex:1;min-height:70px;resize:vertical;box-sizing:border-box;padding:9px;border-radius:8px;border:1px solid #7890ff}
+.user-chat-msg{margin:6px 0;padding:8px 10px;border-radius:8px;background:rgba(40,70,150,.22);overflow-wrap:anywhere}
+.user-chat-msg small{display:block;color:#9fb1e8;font-size:10px;margin-bottom:3px}
+.recommend-field{display:block;width:100%;box-sizing:border-box;margin:8px 0 14px;padding:12px;border-radius:8px;border:1px solid #7890ff;background:#fff;color:#111;font:14px "Roboto Mono",monospace}
+#recommendNotes{min-height:100px;resize:vertical}
 .auth-overlay{position:fixed;inset:0;background:rgba(0,0,20,.88);backdrop-filter:blur(8px);z-index:20000;display:none;align-items:center;justify-content:center}
 .auth-overlay.show{display:flex}
 #authOverlay.auth-gate{display:flex;z-index:30000}
@@ -834,6 +844,8 @@
 
 <button id="accountButton" type="button">Log In</button>
 <button id="adminButton" type="button">Admin Panel</button>
+<button id="userChatButton" type="button">💬 Messages</button>
+<button id="recommendButton" type="button">🌐 Recommend a Website</button>
 
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-card">
@@ -886,6 +898,33 @@
     </div>
     <div class="admin-log" id="adminLogs">Loading moderation history...</div>
     <div class="auth-actions"><button id="adminClose" class="auth-secondary" type="button">Close</button></div>
+  </div>
+</div>
+
+<div id="userChatOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2>💬 Messages to Admin</h2>
+    <p class="auth-note">Send a private message to the site admin and read replies here.</p>
+    <div id="userChatHistory">Loading messages...</div>
+    <div class="user-chat-compose">
+      <textarea id="userChatInput" maxlength="4000" placeholder="Write a message to the admin..."></textarea>
+      <button id="userChatSend" type="button">Send</button>
+    </div>
+    <div id="userChatError" class="auth-error"></div>
+    <div class="auth-actions"><button id="userChatRefresh" class="auth-secondary" type="button">Refresh</button><button id="userChatClose" class="auth-secondary" type="button">Close</button></div>
+  </div>
+</div>
+
+<div id="recommendOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <h2>🌐 Recommend a Website</h2>
+    <p class="auth-note">Suggest a website for the owner to review. Submitting opens an email addressed to daimenlawson@gmail.com; you will still need to press Send in your email app.</p>
+    <label for="recommendUrl">Website URL</label>
+    <input id="recommendUrl" class="recommend-field" type="url" placeholder="https://example.com" maxlength="500" required>
+    <label for="recommendNotes">Why should it be added? (optional)</label>
+    <textarea id="recommendNotes" class="recommend-field" maxlength="1500" placeholder="What is the website, and why do you recommend it?"></textarea>
+    <div id="recommendError" class="auth-error"></div>
+    <div class="auth-actions"><button id="recommendSubmit" type="button">Prepare Email</button><button id="recommendClose" class="auth-secondary" type="button">Cancel</button></div>
   </div>
 </div>
 
@@ -1107,7 +1146,7 @@
     document.body.classList.toggle("auth-locked",!!locked);
 
     Array.from(document.body.children).forEach(function(el){
-      if(el===overlay || el.id==="banOverlay" || el.id==="adminOverlay" || el.tagName==="SCRIPT" || el.tagName==="STYLE") return;
+      if(el===overlay || el.id==="banOverlay" || el.id==="adminOverlay" || el.id==="userChatOverlay" || el.id==="recommendOverlay" || el.tagName==="SCRIPT" || el.tagName==="STYLE") return;
       if(locked) el.setAttribute("inert","");
       else el.removeAttribute("inert");
     });
@@ -1136,6 +1175,7 @@
     if(!currentUser){
       $("accountButton").textContent="Log In";
       $("adminButton").style.display="none";
+      $("userChatButton").style.display="none"; $("recommendButton").style.display="none";
       setRecordingVisible(false);
       setAuthGate(true);
       return;
@@ -1153,6 +1193,7 @@
     }
     $("accountButton").textContent="👤 "+(p?.username||currentUser.email||"Account");
     $("adminButton").style.display=p?.role==="admin"?"block":"none";
+    $("userChatButton").style.display="block"; $("recommendButton").style.display="block";
     setRecordingVisible(true);
     setAuthGate(false);
     hide("authOverlay");
@@ -1260,9 +1301,9 @@
   async function loadChat(){
     const box=$("adminChatHistory");
     if(!selectedChatUser){box.textContent="Choose a user to view the conversation.";return;}
-    const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
+    const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,sender_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
     if(e){box.textContent="Chat unavailable: "+e.message;return;}
-    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.admin_id===currentUser?.id?"You":(selectedChatUser.username||"Admin"))+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
+    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":(selectedChatUser.username||"User"))+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
     box.scrollTop=box.scrollHeight;
   }
   async function sendChat(){
@@ -1270,9 +1311,46 @@
     const input=$("adminChatInput"), message=input.value.trim();
     if(!message)return;
     $("adminChatError").textContent="";
-    const {error:e}=await client.from("admin_messages").insert({user_id:selectedChatUser.id,admin_id:currentUser.id,message});
+    const {error:e}=await client.from("admin_messages").insert({user_id:selectedChatUser.id,admin_id:currentUser.id,sender_id:currentUser.id,message});
     if(e){$("adminChatError").textContent="Send failed: "+e.message;return;}
     input.value=""; await loadChat();
+  }
+  async function loadUserChat(){
+    const box=$("userChatHistory");
+    if(!currentUser){box.textContent="Log in to view messages.";return;}
+    box.textContent="Loading messages...";
+    const {data,error:e}=await client.from("admin_messages")
+      .select("id,user_id,admin_id,sender_id,message,created_at")
+      .eq("user_id",currentUser.id).order("created_at",{ascending:true}).limit(200);
+    if(e){box.textContent="Messages unavailable: "+e.message;return;}
+    box.innerHTML=(data||[]).map(m=>'<div class="user-chat-msg"><small>'+esc(m.sender_id===currentUser.id?"You":"Admin")+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet. Send the admin a message below.";
+    box.scrollTop=box.scrollHeight;
+    $("userChatError").textContent="";
+  }
+  async function sendUserChat(){
+    const input=$("userChatInput"), message=input.value.trim();
+    if(!currentUser){$("userChatError").textContent="Please log in first.";return;}
+    if(!message)return;
+    $("userChatError").textContent="";
+    $("userChatSend").disabled=true;
+    const {error:e}=await client.rpc("send_admin_message",{message_text:message});
+    $("userChatSend").disabled=false;
+    if(e){$("userChatError").textContent="Send failed: "+e.message;return;}
+    input.value="";
+    await loadUserChat();
+  }
+  function prepareRecommendationEmail(){
+    const urlInput=$("recommendUrl"), notesInput=$("recommendNotes"), errorBox=$("recommendError");
+    let website=urlInput.value.trim();
+    if(!website){errorBox.textContent="Enter the website URL.";urlInput.focus();return;}
+    if(!/^https?:\\/\\//i.test(website)) website="https://"+website;
+    let parsed;
+    try{parsed=new URL(website);}catch(_){errorBox.textContent="Enter a valid website URL.";return;}
+    if(!["http:","https:"].includes(parsed.protocol)){errorBox.textContent="Use a website URL beginning with http:// or https://.";return;}
+    const subject="Website recommendation for review";
+    const body="Website recommendation:\\n"+parsed.href+"\\n\\nSuggested by: "+(currentUser?.email||currentUser?.id||"Website visitor")+"\\n\\nReason / notes:\\n"+(notesInput.value.trim()||"(No notes provided)");
+    window.location.href="mailto:daimenlawson@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+    errorBox.textContent="Your email app should open with the recommendation ready to send.";
   }
   async function loadLogs(){
     const box=$("adminLogs");
@@ -1321,6 +1399,14 @@
     $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();};
     $("adminChatSend").onclick=sendChat;
     $("adminChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}};
+    $("userChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}show("userChatOverlay");await loadUserChat();};
+    $("userChatSend").onclick=sendUserChat;
+    $("userChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendUserChat();}};
+    $("userChatRefresh").onclick=loadUserChat;
+    $("userChatClose").onclick=()=>hide("userChatOverlay");
+    $("recommendButton").onclick=()=>{if(!currentUser){openAuth(false);return;}show("recommendOverlay");};
+    $("recommendClose").onclick=()=>hide("recommendOverlay");
+    $("recommendSubmit").onclick=prepareRecommendationEmail;
     $("authSubmit").onclick=submitAuth;
     $("authToggle").onclick=()=>openAuth(!signupMode);
     $("authForgot").onclick=forgotPassword;$("authClose").onclick=()=>{if(!document.getElementById("authOverlay").classList.contains("auth-gate"))hide("authOverlay");};
