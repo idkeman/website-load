@@ -15,6 +15,7 @@
 #accountButton{position:fixed;top:10px;right:165px;z-index:10001;padding:10px 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.75);color:#fff;border:1px solid #4d7cff;cursor:pointer}
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
 #userChatButton,#recommendButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:none;cursor:pointer}
+.unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;margin-left:5px;border-radius:999px;background:#ef3340;color:#fff;font-size:11px;font-weight:800;line-height:18px;box-sizing:border-box}
 #userChatButton{top:100px}#recommendButton{top:145px;background:#164e86}
 #userChatOverlay .auth-card,#recommendOverlay .auth-card{width:min(650px,94vw)}
 #userChatHistory{height:300px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
@@ -843,8 +844,8 @@
 <body>
 
 <button id="accountButton" type="button">Log In</button>
-<button id="adminButton" type="button">Admin Panel</button>
-<button id="userChatButton" type="button">💬 Messages</button>
+<button id="adminButton" type="button">Admin Panel <span id="adminUnreadBadge" class="unread-badge" style="display:none">0</span></button>
+<button id="userChatButton" type="button">💬 Messages <span id="userUnreadBadge" class="unread-badge" style="display:none">0</span></button>
 <button id="recommendButton" type="button">🌐 Recommend a Website</button>
 
 <div id="authOverlay" class="auth-overlay">
@@ -1296,6 +1297,23 @@
     if(e){alert((value?"Verification":"Unverification")+" failed: "+e.message);return;}
     await loadUsers();
   }
+  function unreadStorageKey(kind,userId){return "website-load-"+kind+"-last-read-"+userId;}
+  function getLastRead(kind,userId){try{return Number(localStorage.getItem(unreadStorageKey(kind,userId))||0);}catch(_){return 0;}}
+  function setLastRead(kind,userId,timestamp){try{localStorage.setItem(unreadStorageKey(kind,userId),String(Math.max(getLastRead(kind,userId),Number(timestamp)||Date.now())));}catch(_){}}
+  function setUnreadBadge(id,count){const badge=$(id);if(!badge)return;const n=Math.max(0,Number(count)||0);badge.textContent=n>99?"99+":String(n);badge.style.display=n?"inline-flex":"none";}
+  async function updateUnreadBadges(){
+    if(!currentUser||!client){setUnreadBadge("userUnreadBadge",0);setUnreadBadge("adminUnreadBadge",0);return;}
+    const {data:profile}=await client.from("profiles").select("role").eq("id",currentUser.id).maybeSingle();
+    if(profile?.role==="admin"){
+      const {data,error:e}=await client.from("admin_messages").select("user_id,sender_id,created_at").neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(1000);
+      if(!e){const n=(data||[]).filter(m=>new Date(m.created_at).getTime()>getLastRead("admin",m.user_id)).length;setUnreadBadge("adminUnreadBadge",n);}
+      setUnreadBadge("userUnreadBadge",0);
+    }else{
+      const {data,error:e}=await client.from("admin_messages").select("sender_id,created_at").eq("user_id",currentUser.id).neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(200);
+      if(!e){const n=(data||[]).filter(m=>new Date(m.created_at).getTime()>getLastRead("user",currentUser.id)).length;setUnreadBadge("userUnreadBadge",n);}
+      setUnreadBadge("adminUnreadBadge",0);
+    }
+  }
   async function openChat(id){
     selectedChatUser=adminUsersCache.find(u=>u.id===id)||null;
     $("adminChatTitle").textContent=selectedChatUser?"💬 "+(selectedChatUser.username||selectedChatUser.email||"User"):"Select a user";
@@ -1309,7 +1327,10 @@
     const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,sender_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
     if(e){box.textContent="Chat unavailable: "+e.message;return;}
     box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":(selectedChatUser.username||"User"))+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
+    const incoming=(data||[]).filter(m=>m.sender_id!==currentUser?.id);
+    if(incoming.length)setLastRead("admin",selectedChatUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
     box.scrollTop=box.scrollHeight;
+    await updateUnreadBadges();
   }
   async function sendChat(){
     if(!selectedChatUser)return;
@@ -1329,8 +1350,11 @@
       .eq("user_id",currentUser.id).order("created_at",{ascending:true}).limit(200);
     if(e){box.textContent="Messages unavailable: "+e.message;return;}
     box.innerHTML=(data||[]).map(m=>'<div class="user-chat-msg"><small>'+esc(m.sender_id===currentUser.id?"You":"Admin")+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet. Send the admin a message below.";
+    const incoming=(data||[]).filter(m=>m.sender_id!==currentUser.id);
+    if(incoming.length)setLastRead("user",currentUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
     box.scrollTop=box.scrollHeight;
     $("userChatError").textContent="";
+    await updateUnreadBadges();
   }
   async function sendUserChat(){
     const input=$("userChatInput"), message=input.value.trim();
@@ -1420,6 +1444,8 @@
     $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
     client.auth.onAuthStateChange(()=>refreshAccount());
     refreshAccount();
+    updateUnreadBadges();
+    setInterval(updateUnreadBadges,15000);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
