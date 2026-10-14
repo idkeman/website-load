@@ -30,7 +30,7 @@
 .auth-error{color:#ff9d9d;min-height:20px;margin-top:8px}
 .auth-note{color:#b9c8ff;font-size:12px;line-height:1.5}
 #adminOverlay .auth-card{width:min(850px,94vw);max-height:82vh;overflow:auto}
-.admin-user{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid rgba(120,150,255,.25);padding:12px;margin:8px 0;border-radius:10px;background:rgba(0,0,0,.25)}
+.admin-user-count{margin:12px 0;padding:12px 14px;border:1px solid rgba(120,150,255,.35);border-radius:10px;background:rgba(30,80,180,.2);color:#fff;font-size:15px;font-weight:700}.admin-user{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid rgba(120,150,255,.25);padding:12px;margin:8px 0;border-radius:10px;background:rgba(0,0,0,.25)}
 .admin-user small{display:block;color:#a9b8e8;margin-top:3px}
 .status-banned{color:#ff8080}.status-active{color:#8dffb0}
 .admin-log{font-size:11px;color:#aebeff;margin-top:14px}
@@ -866,6 +866,7 @@
   <div class="auth-card">
     <h2>Admin Panel</h2>
     <p class="auth-note">Manage accounts. Bans are stored in Supabase and enforced for account-protected features.</p>
+    <div id="adminUserCount" class="admin-user-count">Total users: loading...</div>
     <div id="adminUsers">Loading users...</div>
     <div class="admin-tools">
       <section class="admin-tool">
@@ -1205,6 +1206,8 @@
     const {data,error:e}=await client.rpc("admin_list_users");
     if(e){box.textContent="Admin access denied: "+e.message;return;}
     const fetchedUsers=data||[];
+    const countBox=$("adminUserCount");
+    if(countBox) countBox.textContent="Total users: "+fetchedUsers.length;
     // Permanently ban accounts with no real username, then omit them from all admin user lists.
     const namelessUsers=fetchedUsers.filter(u=>!String(u.username||"").trim());
     for(const u of namelessUsers){
