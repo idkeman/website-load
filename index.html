@@ -1343,12 +1343,12 @@
     const urlInput=$("recommendUrl"), notesInput=$("recommendNotes"), errorBox=$("recommendError");
     let website=urlInput.value.trim();
     if(!website){errorBox.textContent="Enter the website URL.";urlInput.focus();return;}
-    if(!/^https?:\\/\\//i.test(website)) website="https://"+website;
+    if(!/^https?:\/\//i.test(website)) website="https://"+website;
     let parsed;
     try{parsed=new URL(website);}catch(_){errorBox.textContent="Enter a valid website URL.";return;}
     if(!["http:","https:"].includes(parsed.protocol)){errorBox.textContent="Use a website URL beginning with http:// or https://.";return;}
     const subject="Website recommendation for review";
-    const body="Website recommendation:\\n"+parsed.href+"\\n\\nSuggested by: "+(currentUser?.email||currentUser?.id||"Website visitor")+"\\n\\nReason / notes:\\n"+(notesInput.value.trim()||"(No notes provided)");
+    const body="Website recommendation:\n"+parsed.href+"\n\nSuggested by: "+(currentUser?.email||currentUser?.id||"Website visitor")+"\n\nReason / notes:\n"+(notesInput.value.trim()||"(No notes provided)");
     window.location.href="mailto:daimenlawson@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
     errorBox.textContent="Your email app should open with the recommendation ready to send.";
   }
