@@ -897,6 +897,12 @@
         <div id="adminChatError" class="auth-error"></div>
       </section>
     </div>
+    <section class="admin-tool" style="margin-top:14px">
+      <h3>🌐 Website Recommendations</h3>
+      <p class="auth-note">Recommendations submitted through the website are collected here, separately from direct messages.</p>
+      <div class="auth-actions"><button id="recommendationsRefresh" type="button">Refresh Recommendations</button></div>
+      <div id="adminRecommendations" class="admin-chat-list" style="max-height:320px;margin-top:10px">Loading recommendations...</div>
+    </section>
     <div class="admin-log" id="adminLogs">Loading moderation history...</div>
     <div class="auth-actions"><button id="adminClose" class="auth-secondary" type="button">Close</button></div>
   </div>
@@ -1377,26 +1383,37 @@
     if(!/^https?:\/\//i.test(website)) website="https://"+website;
     let parsed;
     try{parsed=new URL(website);}catch(_){errorBox.textContent="Enter a valid website URL.";return;}
-    if(!["http:","https:"].includes(parsed.protocol)){errorBox.textContent="Use a website URL beginning with http:// or https://.";return;}
+    if(!["http:","https:"].includes(parsed.protocol)||!parsed.hostname.includes(".")){errorBox.textContent="Enter a valid website URL.";return;}
     const notes=notesInput.value.trim();
-    const message="🌐 WEBSITE RECOMMENDATION\nURL: "+parsed.href+"\n\nReason / notes:\n"+(notes||"(No notes provided)");
     errorBox.textContent="Sending recommendation...";
     submit.disabled=true;
     try{
-      const {error:e}=await client.rpc("send_admin_message",{message_text:message});
+      const {data,error:e}=await client.rpc("submit_website_recommendation",{website_url:parsed.href,notes});
       if(e){errorBox.textContent="Could not send recommendation: "+e.message;return;}
       urlInput.value="";
       notesInput.value="";
       hide("recommendOverlay");
-      show("userChatOverlay");
-      await loadUserChat();
-      $("userChatError").textContent="Recommendation sent to the site owner.";
+      alert("Website recommendation submitted successfully. Thank you!");
     }catch(e){
       errorBox.textContent="Could not send recommendation. Please try again.";
       console.error("Recommendation send failed",e);
     }finally{
       submit.disabled=false;
     }
+  }
+  async function loadRecommendations(){
+    const box=$("adminRecommendations"); if(!box)return;
+    box.textContent="Loading recommendations...";
+    const {data,error:e}=await client.from("website_recommendations")
+      .select("id,user_id,website_url,notes,status,created_at")
+      .order("created_at",{ascending:false}).limit(200);
+    if(e){box.textContent="Recommendations unavailable: "+e.message;return;}
+    if(!data||!data.length){box.textContent="No website recommendations yet.";return;}
+    box.innerHTML=data.map(rec=>{
+      const user=adminUsersCache.find(u=>u.id===rec.user_id);
+      const safeUrl=esc(rec.website_url);
+      return '<div class="admin-chat-user" style="display:block"><strong>'+esc(user?.username||user?.email||"Unknown account")+'</strong><small>'+esc(new Date(rec.created_at).toLocaleString())+' · '+esc(rec.status)+'</small><p style="overflow-wrap:anywhere;margin:8px 0"><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="color:#9fc7ff">'+safeUrl+'</a></p><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(rec.notes||"No notes provided.")+'</div></div>';
+    }).join("");
   }
   async function loadLogs(){
     const box=$("adminLogs");
@@ -1442,7 +1459,8 @@
     if(!window.supabase){console.error("Supabase library failed to load.");return;}
     client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     $("accountButton").onclick=()=>currentUser?confirm("Log out of "+(currentUser.email||"this account")+"?")&&client.auth.signOut():openAuth(false);
-    $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();};
+    $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();await loadRecommendations();};
+    $("recommendationsRefresh").onclick=loadRecommendations;
     $("adminChatSend").onclick=sendChat;
     $("adminChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}};
     $("userChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}show("userChatOverlay");await loadUserChat();};
