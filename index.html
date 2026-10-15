@@ -1334,7 +1334,8 @@
     if(!selectedChatUser){box.textContent="Choose a user to view the conversation.";return;}
     const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,sender_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
     if(e){box.textContent="Chat unavailable: "+e.message;return;}
-    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":(selectedChatUser.username||"User"))+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
+    const otherSender=selectedChatUser.username||selectedChatUser.email||("User "+String(selectedChatUser.id).slice(0,8));
+    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":otherSender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
     const incoming=(data||[]).filter(m=>m.sender_id!==currentUser?.id);
     if(incoming.length)setLastRead("admin",selectedChatUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
     box.scrollTop=box.scrollHeight;
@@ -1357,8 +1358,21 @@
       .select("id,user_id,admin_id,sender_id,message,created_at")
       .eq("user_id",currentUser.id).order("created_at",{ascending:true}).limit(200);
     if(e){box.textContent="Messages unavailable: "+e.message;return;}
-    box.innerHTML=(data||[]).map(m=>'<div class="user-chat-msg"><small>'+esc(m.sender_id===currentUser.id?"You":"Admin")+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet. Send the admin a message below.";
-    const incoming=(data||[]).filter(m=>m.sender_id!==currentUser.id);
+    const messages=data||[];
+    const senderIds=[...new Set(messages.filter(m=>m.sender_id&&m.sender_id!==currentUser.id).map(m=>m.sender_id))];
+    const senderNames={};
+    if(senderIds.length){
+      const {data:profiles}=await client.from("profiles").select("id,username,email").in("id",senderIds);
+      (profiles||[]).forEach(p=>{senderNames[p.id]=p.username||p.email||("Account "+String(p.id).slice(0,8));});
+    }
+    box.innerHTML=messages.map(m=>{
+      let sender="You";
+      if(m.sender_id!==currentUser.id){
+        sender=senderNames[m.sender_id]||("Admin account · "+String(m.sender_id||m.admin_id||"unknown").slice(0,8));
+      }
+      return '<div class="user-chat-msg"><small>'+esc(sender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>';
+    }).join("")||"No messages yet. Send the admin a message below.";
+    const incoming=messages.filter(m=>m.sender_id!==currentUser.id);
     if(incoming.length)setLastRead("user",currentUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
     box.scrollTop=box.scrollHeight;
     $("userChatError").textContent="";
