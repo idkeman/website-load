@@ -925,7 +925,7 @@
 <div id="recommendOverlay" class="auth-overlay">
   <div class="auth-card">
     <h2>🌐 Recommend a Website</h2>
-    <p class="auth-note">Send a website recommendation directly to the site owner. It will appear in the site's private Messages system and admin panel.</p>
+    <p class="auth-note">Send a website recommendation directly to the site owner. It will appear in the Website Recommendations inbox in the Admin Panel.</p>
     <label for="recommendUrl">Website URL</label>
     <input id="recommendUrl" class="recommend-field" type="url" placeholder="https://example.com" maxlength="500" required>
     <label for="recommendNotes">Why should it be added? (optional)</label>
@@ -1404,16 +1404,23 @@
   async function loadRecommendations(){
     const box=$("adminRecommendations"); if(!box)return;
     box.textContent="Loading recommendations...";
-    const {data,error:e}=await client.from("website_recommendations")
-      .select("id,user_id,website_url,notes,status,created_at")
-      .order("created_at",{ascending:false}).limit(200);
-    if(e){box.textContent="Recommendations unavailable: "+e.message;return;}
-    if(!data||!data.length){box.textContent="No website recommendations yet.";return;}
-    box.innerHTML=data.map(rec=>{
-      const user=adminUsersCache.find(u=>u.id===rec.user_id);
-      const safeUrl=esc(rec.website_url);
-      return '<div class="admin-chat-user" style="display:block"><strong>'+esc(user?.username||user?.email||"Unknown account")+'</strong><small>'+esc(new Date(rec.created_at).toLocaleString())+' · '+esc(rec.status)+'</small><p style="overflow-wrap:anywhere;margin:8px 0"><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="color:#9fc7ff">'+safeUrl+'</a></p><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(rec.notes||"No notes provided.")+'</div></div>';
-    }).join("");
+    try{
+      const {data,error:e}=await client.rpc("admin_list_website_recommendations");
+      if(e){
+        console.error("Recommendation inbox load failed:",e);
+        box.textContent="Recommendations unavailable: "+e.message;
+        return;
+      }
+      if(!data||!data.length){box.textContent="No website recommendations yet.";return;}
+      box.innerHTML=data.map(rec=>{
+        const safeUrl=esc(rec.website_url);
+        const sender=rec.username&&rec.username!=="Unknown account"?rec.username:(rec.email||rec.username||"Unknown account");
+        return '<div class="admin-chat-user" style="display:block"><strong>'+esc(sender)+'</strong><small>'+esc(new Date(rec.created_at).toLocaleString())+' · '+esc(rec.status)+'</small><p style="overflow-wrap:anywhere;margin:8px 0"><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="color:#9fc7ff">'+safeUrl+'</a></p><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(rec.notes||"No notes provided.")+'</div></div>';
+      }).join("");
+    }catch(err){
+      console.error("Recommendation inbox load crashed:",err);
+      box.textContent="Recommendations could not be loaded. Check the browser console for details.";
+    }
   }
   async function loadLogs(){
     const box=$("adminLogs");
