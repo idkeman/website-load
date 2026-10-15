@@ -919,13 +919,13 @@
 <div id="recommendOverlay" class="auth-overlay">
   <div class="auth-card">
     <h2>🌐 Recommend a Website</h2>
-    <p class="auth-note">Suggest a website for the owner to review. Submitting opens an email addressed to daimenlawson@gmail.com; you will still need to press Send in your email app.</p>
+    <p class="auth-note">Send a website recommendation directly to the site owner. It will appear in the site's private Messages system and admin panel.</p>
     <label for="recommendUrl">Website URL</label>
     <input id="recommendUrl" class="recommend-field" type="url" placeholder="https://example.com" maxlength="500" required>
     <label for="recommendNotes">Why should it be added? (optional)</label>
     <textarea id="recommendNotes" class="recommend-field" maxlength="1500" placeholder="What is the website, and why do you recommend it?"></textarea>
     <div id="recommendError" class="auth-error"></div>
-    <div class="auth-actions"><button id="recommendSubmit" type="button">Prepare Email</button><button id="recommendClose" class="auth-secondary" type="button">Cancel</button></div>
+    <div class="auth-actions"><button id="recommendSubmit" type="button">Send Recommendation</button><button id="recommendClose" class="auth-secondary" type="button">Cancel</button></div>
   </div>
 </div>
 
@@ -1369,18 +1369,34 @@
     input.value="";
     await loadUserChat();
   }
-  function prepareRecommendationEmail(){
-    const urlInput=$("recommendUrl"), notesInput=$("recommendNotes"), errorBox=$("recommendError");
+  async function prepareRecommendationEmail(){
+    const urlInput=$("recommendUrl"), notesInput=$("recommendNotes"), errorBox=$("recommendError"), submit=$("recommendSubmit");
     let website=urlInput.value.trim();
+    if(!currentUser){errorBox.textContent="Please log in first.";return;}
     if(!website){errorBox.textContent="Enter the website URL.";urlInput.focus();return;}
     if(!/^https?:\/\//i.test(website)) website="https://"+website;
     let parsed;
     try{parsed=new URL(website);}catch(_){errorBox.textContent="Enter a valid website URL.";return;}
     if(!["http:","https:"].includes(parsed.protocol)){errorBox.textContent="Use a website URL beginning with http:// or https://.";return;}
-    const subject="Website recommendation for review";
-    const body="Website recommendation:\n"+parsed.href+"\n\nSuggested by: "+(currentUser?.email||currentUser?.id||"Website visitor")+"\n\nReason / notes:\n"+(notesInput.value.trim()||"(No notes provided)");
-    window.location.href="mailto:daimenlawson@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-    errorBox.textContent="Your email app should open with the recommendation ready to send.";
+    const notes=notesInput.value.trim();
+    const message="🌐 WEBSITE RECOMMENDATION\nURL: "+parsed.href+"\n\nReason / notes:\n"+(notes||"(No notes provided)");
+    errorBox.textContent="Sending recommendation...";
+    submit.disabled=true;
+    try{
+      const {error:e}=await client.rpc("send_admin_message",{message_text:message});
+      if(e){errorBox.textContent="Could not send recommendation: "+e.message;return;}
+      urlInput.value="";
+      notesInput.value="";
+      hide("recommendOverlay");
+      show("userChatOverlay");
+      await loadUserChat();
+      $("userChatError").textContent="Recommendation sent to the site owner.";
+    }catch(e){
+      errorBox.textContent="Could not send recommendation. Please try again.";
+      console.error("Recommendation send failed",e);
+    }finally{
+      submit.disabled=false;
+    }
   }
   async function loadLogs(){
     const box=$("adminLogs");
