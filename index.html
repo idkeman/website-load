@@ -16,7 +16,7 @@
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
 #userChatButton,#recommendButton,#publicChatButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:block;cursor:pointer}
 .unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;margin-left:5px;border-radius:999px;background:#ef3340;color:#fff;font-size:11px;font-weight:800;line-height:18px;box-sizing:border-box}
-#userChatButton{top:100px}#publicChatButton{top:145px;background:#087f5b}#recommendButton{top:190px;background:#164e86}#publicChatOverlay .auth-card{width:min(750px,94vw)}#publicChatHistory{height:360px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
+#userChatButton{top:100px}#publicChatButton{top:145px;background:#087f5b}#recommendButton{top:190px;background:#164e86}#publicChatOverlay .auth-card{width:min(750px,94vw)}#publicChatOverlay.public-chat-panel{position:fixed;inset:80px 12px 12px;z-index:9998;display:none;overflow:auto;background:transparent;align-items:flex-start;justify-content:center}#publicChatOverlay.public-chat-panel.show{display:flex}#publicChatOverlay.public-chat-panel .auth-card{width:min(900px,96vw);max-height:calc(100vh - 100px);overflow:auto}#publicChatHistory{height:360px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
 #userChatOverlay .auth-card,#recommendOverlay .auth-card{width:min(650px,94vw)}
 #userChatHistory{height:300px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
 .user-chat-compose{display:flex;gap:8px;margin-top:10px}
@@ -923,7 +923,7 @@
   </div>
 </div>
 
-<div id="publicChatOverlay" class="auth-overlay">
+<div id="publicChatOverlay" class="auth-overlay public-chat-panel">
   <div class="auth-card"><h2>🌐 Public Chat</h2><p class="auth-note">Messages here are visible to all signed-in users. Keep personal information private and be respectful.</p><div id="publicChatHistory">Loading public chat...</div><div class="user-chat-compose"><textarea id="publicChatInput" maxlength="4000" placeholder="Message everyone..." style="flex:1;min-height:70px"></textarea><button id="publicChatSend" type="button">Send</button></div><div id="publicChatError" class="auth-error"></div><div class="auth-actions"><button id="publicChatRefresh" class="auth-secondary" type="button">Refresh</button><button id="publicChatClose" class="auth-secondary" type="button">Close</button></div></div>
 </div>
 
