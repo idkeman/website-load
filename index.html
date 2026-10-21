@@ -14,7 +14,7 @@
 /* Supabase account + moderation UI */
 #accountButton{position:fixed;top:10px;right:165px;z-index:10001;padding:10px 14px;border-radius:10px;font-size:14px;background:rgba(0,0,0,.75);color:#fff;border:1px solid #4d7cff;cursor:pointer}
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
-#userChatButton,#recommendButton,#publicChatButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:none;cursor:pointer}
+#userChatButton,#recommendButton,#publicChatButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:block;cursor:pointer}
 .unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;margin-left:5px;border-radius:999px;background:#ef3340;color:#fff;font-size:11px;font-weight:800;line-height:18px;box-sizing:border-box}
 #userChatButton{top:100px}#publicChatButton{top:145px;background:#087f5b}#recommendButton{top:190px;background:#164e86}#publicChatOverlay .auth-card{width:min(750px,94vw)}#publicChatHistory{height:360px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
 #userChatOverlay .auth-card,#recommendOverlay .auth-card{width:min(650px,94vw)}
@@ -1191,7 +1191,7 @@
     if(!currentUser){
       $("accountButton").textContent="Log In";
       $("adminButton").style.display="none";
-      $("userChatButton").style.display="none"; $("publicChatButton").style.display="none"; $("recommendButton").style.display="none";
+      $("userChatButton").style.display="none"; $("publicChatButton").style.display="block"; $("recommendButton").style.display="none";
       setRecordingVisible(false);
       setAuthGate(true);
       return;
