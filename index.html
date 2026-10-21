@@ -1411,7 +1411,7 @@
     const box=$("publicChatUsers");
     if(!currentUser){box.textContent="Log in to chat.";return;}
     box.textContent="Loading users...";
-    const {data,error:e}=await client.from("profiles").select("id,username").order("username",{ascending:true}).limit(500);
+    const {data,error:e}=await client.rpc("chat_list_users");
     if(e){box.textContent="Could not load users: "+e.message;return;}
     publicChatUsers=(data||[]).filter(u=>u.id!==currentUser.id);
     renderPublicChatUsers();
