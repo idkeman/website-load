@@ -455,26 +455,32 @@
       margin: 4px;
     }
 
-    /* Fullscreen button styles (optional) */
+    /* Compact fullscreen control, aligned with the URL controls. */
     #fullscreenBtn {
-      position: fixed;
-      right: 20px;
-      top: 65%;
-      transform: translateY(-50%);
-      padding: 14px 26px;
-      background: linear-gradient(135deg, #ff7f50, #ff6347);
-      color: white;
-      border: none;
-      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0 14px;
+      padding: 10px 16px;
+      background: #164e86;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 0 15px rgba(255, 127, 80, 0.6);
-      z-index: 10;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.2;
+      box-shadow: 0 3px 10px rgba(0,0,0,.22);
+      transition: background .15s ease, transform .15s ease;
     }
-
     #fullscreenBtn:hover {
-      transform: translateY(-50%) scale(1.05);
-      box-shadow: 0 0 22px rgba(255, 127, 80, 0.9);
+      background: #1d65a8;
+      transform: translateY(-1px);
+    }
+    #fullscreenBtn:focus-visible {
+      outline: 2px solid #93c5fd;
+      outline-offset: 3px;
     }
 
     #snowCanvas {
@@ -1127,7 +1133,6 @@
   </svg>
 </button>
   <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
-  <a href="https://2706692.playcode.io/" id="redirect-button2">New url hub</a>
   <br>
 <div class="iframe">
   <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
