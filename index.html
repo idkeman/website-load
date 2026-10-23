@@ -1464,16 +1464,16 @@
     box.textContent="Loading users...";
     const {data,error:e}=await client.rpc("chat_list_users");
     if(e){box.textContent="Could not load users: "+e.message;return;}
-    publicChatUsers=(data||[]).filter(u=>u.id!==currentUser.id);
+    publicChatUsers=(data||[]).filter(u=>u.id!==currentUser.id&&typeof u.username==="string"&&u.username.trim().length>0);
     renderPublicChatUsers();
   }
   let directUnreadBySender={};
   function renderPublicChatUsers(){
     const box=$("publicChatUsers"), q=($("publicChatUserSearch").value||"").trim().toLowerCase();
-    const users=publicChatUsers.filter(u=>(u.username||"User").toLowerCase().includes(q));
+    const users=publicChatUsers.filter(u=>u.username.toLowerCase().includes(q));
     box.innerHTML=users.map(u=>{
       const count=directUnreadBySender[u.id]||0;
-      return '<div class="public-dm-user '+(publicChatSelected?.id===u.id?'selected':'')+'" data-user="'+esc(u.id)+'"><span>'+esc(u.username||("User "+u.id.slice(0,8)))+'</span><span class="dm-user-right">'+(count?'<span class="dm-unread-count" title="'+count+' unread message'+(count===1?'':'s')+'">'+count+'</span>':'')+'<button type="button">Chat</button></span></div>';
+      return '<div class="public-dm-user '+(publicChatSelected?.id===u.id?'selected':'')+'" data-user="'+esc(u.id)+'"><span>'+esc(u.username)+'</span><span class="dm-user-right">'+(count?'<span class="dm-unread-count" title="'+count+' unread message'+(count===1?'':'s')+'">'+count+'</span>':'')+'<button type="button">Chat</button></span></div>';
     }).join("")||"No other users found.";
     box.querySelectorAll(".public-dm-user").forEach(el=>el.onclick=()=>{const u=publicChatUsers.find(x=>x.id===el.dataset.user);if(u){publicChatSelected=u;renderPublicChatUsers();loadPublicChat();}});
   }
