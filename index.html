@@ -1619,8 +1619,23 @@
     $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
     $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
     client.auth.onAuthStateChange(async()=>{directChatNoticeInitialized=false;await refreshAccount();await updateUnreadBadges();});
-    refreshAccount().then(()=>updateUnreadBadges());
-    setInterval(()=>{if(currentUser)updateUnreadBadges();},15000);
+    // Keep chat badges/notices fresh even when one polling request fails or the tab
+    // returns from the background. Prevent overlapping refreshes from piling up.
+    let unreadRefreshInFlight=false;
+    async function refreshChatNotifications(){
+      if(!currentUser||!client||unreadRefreshInFlight)return;
+      unreadRefreshInFlight=true;
+      try{await updateUnreadBadges();}
+      catch(err){console.warn("Chat notification refresh failed:",err);}
+      finally{unreadRefreshInFlight=false;}
+    }
+    refreshAccount().then(refreshChatNotifications).catch(err=>console.warn("Account refresh failed:",err));
+    refreshChatNotifications();
+    setInterval(refreshChatNotifications,5000);
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState==="visible")refreshChatNotifications();
+    });
+    window.addEventListener("focus",refreshChatNotifications);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
