@@ -1345,7 +1345,9 @@
     if(!currentUser||!client){setUnreadBadge("publicChatUnreadBadge",0);return;}
     const {data,error:e}=await client.from("public_chat_messages").select("id,user_id,username,message,created_at").eq("recipient_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
     if(e)return;
-    const messages=data||[], lastRead=getLastRead("direct",currentUser.id);\n    const {data:knownUsers}=await client.rpc("chat_list_users");\n    const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
+    const messages=data||[], lastRead=getLastRead("direct",currentUser.id);
+    const {data:knownUsers}=await client.rpc("chat_list_users");
+    const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
     setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
