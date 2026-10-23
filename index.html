@@ -1355,8 +1355,11 @@
     const messages=data||[], lastRead=getLastRead("direct",currentUser.id);
     const {data:knownUsers}=await client.rpc("chat_list_users");
     const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
-    setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);
-    const senderCounts={};for(const m of messages){if(new Date(m.created_at).getTime()>getLastRead("direct-"+m.user_id,currentUser.id))senderCounts[m.user_id]=(senderCounts[m.user_id]||0)+1;}directUnreadBySender=senderCounts;if($("publicChatUsers"))renderPublicChatUsers();
+    // Count unread messages per sender, matching the read markers used by each
+    // conversation. A global timestamp alone leaves the badge stuck after opening a chat.
+    const senderCounts={};for(const m of messages){if(new Date(m.created_at).getTime()>getLastRead("direct-"+m.user_id,currentUser.id))senderCounts[m.user_id]=(senderCounts[m.user_id]||0)+1;}
+    setUnreadBadge("publicChatUnreadBadge",Object.values(senderCounts).reduce((sum,count)=>sum+count,0));
+    directUnreadBySender=senderCounts;if($("publicChatUsers"))renderPublicChatUsers();
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
     if(!directChatNoticeInitialized){
