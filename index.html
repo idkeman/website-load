@@ -1348,7 +1348,7 @@
     const messages=data||[], lastRead=getLastRead("direct",currentUser.id);
     const {data:knownUsers}=await client.rpc("chat_list_users");
     const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
-    setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);\n    const senderCounts={};for(const m of messages){if(new Date(m.created_at).getTime()>lastRead)senderCounts[m.user_id]=(senderCounts[m.user_id]||0)+1;}directUnreadBySender=senderCounts;if($("publicChatUsers"))renderPublicChatUsers();
+    setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);\n    const senderCounts={};for(const m of messages){if(new Date(m.created_at).getTime()>getLastRead("direct-"+m.user_id,currentUser.id))senderCounts[m.user_id]=(senderCounts[m.user_id]||0)+1;}directUnreadBySender=senderCounts;if($("publicChatUsers"))renderPublicChatUsers();
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
     if(!directChatNoticeInitialized){
@@ -1471,7 +1471,7 @@
     const {data,error}=await client.from("public_chat_messages").select("id,user_id,username,message,created_at").eq("recipient_id",currentUser.id).order("created_at",{ascending:false}).limit(500);
     if(error)return;
     const counts={};
-    for(const m of data||[])if(new Date(m.created_at).getTime()>getLastRead("direct",currentUser.id))counts[m.user_id]=(counts[m.user_id]||0)+1;
+    for(const m of data||[])if(new Date(m.created_at).getTime()>getLastRead("direct-"+m.user_id,currentUser.id))counts[m.user_id]=(counts[m.user_id]||0)+1;
     directUnreadBySender=counts;renderPublicChatUsers();
   }
   async function loadPublicChat(){
@@ -1486,7 +1486,7 @@
     const names={};names[currentUser.id]="You";names[u]=publicChatSelected.username||"User";
     box.innerHTML=(data||[]).map(m=>'<div class="user-chat-msg"><small>'+esc(names[m.user_id]||m.username||"User")+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet. Start the conversation!";
     box.scrollTop=box.scrollHeight;$("publicChatError").textContent="";
-    const latest=(data||[]).filter(m=>m.recipient_id===currentUser.id).reduce((n,m)=>Math.max(n,new Date(m.created_at).getTime()),0);if(latest)setLastRead("direct",currentUser.id,latest);setUnreadBadge("publicChatUnreadBadge",0);await refreshDirectUnreadBySender();
+    const latest=(data||[]).filter(m=>m.recipient_id===currentUser.id&&m.user_id===publicChatSelected.id).reduce((n,m)=>Math.max(n,new Date(m.created_at).getTime()),0);if(latest)setLastRead("direct-"+publicChatSelected.id,currentUser.id,latest);setUnreadBadge("publicChatUnreadBadge",0);await refreshDirectUnreadBySender();
   }
   async function sendPublicChat(){
     const input=$("publicChatInput"), message=input.value.trim();
