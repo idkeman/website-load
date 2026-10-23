@@ -16,7 +16,7 @@
 #adminButton{position:fixed;top:55px;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;background:#6b1cff;color:#fff;border:0;display:none;cursor:pointer}
 #userChatButton,#recommendButton,#publicChatButton{position:fixed;right:165px;z-index:10001;padding:8px 12px;border-radius:10px;font-size:12px;color:#fff;border:1px solid #4d7cff;background:rgba(0,0,0,.82);display:block;cursor:pointer}
 .unread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;margin-left:5px;border-radius:999px;background:#ef3340;color:#fff;font-size:11px;font-weight:800;line-height:18px;box-sizing:border-box}
-#userChatButton{top:100px}#publicChatButton{top:145px;background:#087f5b}#recommendButton{top:190px;background:#164e86}#publicChatOverlay .auth-card{width:min(750px,94vw)}.public-chat-card{width:min(1100px,96vw)!important}.public-dm-layout{display:grid;grid-template-columns:minmax(220px,34%) 1fr;gap:12px;min-height:360px}.public-dm-users,.public-dm-conversation{min-width:0;border:1px solid rgba(120,150,255,.28);border-radius:10px;padding:10px}.public-dm-users input{width:100%;box-sizing:border-box;padding:8px;margin:6px 0;background:#080f2d;color:#fff;border:1px solid #344477;border-radius:6px}.public-dm-users h3,.public-dm-conversation h3{margin:0 0 8px}.public-dm-user{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(120,150,255,.18);cursor:pointer}.public-dm-user.selected{background:rgba(70,100,200,.28)}.public-dm-user button{flex-shrink:0}.public-dm-conversation #publicChatHistory{height:280px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}@media(max-width:650px){.public-dm-layout{grid-template-columns:1fr}.public-dm-users{max-height:200px;overflow:auto}}#publicChatOverlay.public-chat-panel{position:fixed;inset:80px 12px 12px;z-index:9998;display:none;overflow:auto;background:transparent;align-items:flex-start;justify-content:center}#publicChatOverlay.public-chat-panel.show{display:flex}#publicChatOverlay.public-chat-panel .auth-card{width:min(900px,96vw);max-height:calc(100vh - 100px);overflow:auto}#publicChatHistory{height:360px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
+#userChatButton{top:100px}#publicChatButton{top:145px;background:#087f5b}#recommendButton{top:190px;background:#164e86}#publicChatOverlay .auth-card{width:min(750px,94vw)}.public-chat-card{width:min(1100px,96vw)!important}.public-dm-layout{display:grid;grid-template-columns:minmax(220px,34%) 1fr;gap:12px;min-height:360px}.public-dm-users,.public-dm-conversation{min-width:0;border:1px solid rgba(120,150,255,.28);border-radius:10px;padding:10px}.public-dm-users input{width:100%;box-sizing:border-box;padding:8px;margin:6px 0;background:#080f2d;color:#fff;border:1px solid #344477;border-radius:6px}.public-dm-users h3,.public-dm-conversation h3{margin:0 0 8px}.public-dm-user{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(120,150,255,.18);cursor:pointer}.public-dm-user.selected{background:rgba(70,100,200,.28)}.dm-user-right{display:flex;align-items:center;gap:7px}.dm-unread-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#e03131;color:#fff;font-size:12px;font-weight:700}.public-dm-user button{flex-shrink:0}.public-dm-conversation #publicChatHistory{height:280px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}@media(max-width:650px){.public-dm-layout{grid-template-columns:1fr}.public-dm-users{max-height:200px;overflow:auto}}#publicChatOverlay.public-chat-panel{position:fixed;inset:80px 12px 12px;z-index:9998;display:none;overflow:auto;background:transparent;align-items:flex-start;justify-content:center}#publicChatOverlay.public-chat-panel.show{display:flex}#publicChatOverlay.public-chat-panel .auth-card{width:min(900px,96vw);max-height:calc(100vh - 100px);overflow:auto}#publicChatHistory{height:360px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
 #userChatOverlay .auth-card,#recommendOverlay .auth-card{width:min(650px,94vw)}
 #userChatHistory{height:300px;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(120,150,255,.18)}
 .user-chat-compose{display:flex;gap:8px;margin-top:10px}
@@ -1348,7 +1348,7 @@
     const messages=data||[], lastRead=getLastRead("direct",currentUser.id);
     const {data:knownUsers}=await client.rpc("chat_list_users");
     const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
-    setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);
+    setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);\n    const senderCounts={};for(const m of messages){if(new Date(m.created_at).getTime()>lastRead)senderCounts[m.user_id]=(senderCounts[m.user_id]||0)+1;}directUnreadBySender=senderCounts;if($("publicChatUsers"))renderPublicChatUsers();
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
     if(!directChatNoticeInitialized){
@@ -1456,11 +1456,23 @@
     publicChatUsers=(data||[]).filter(u=>u.id!==currentUser.id);
     renderPublicChatUsers();
   }
+  let directUnreadBySender={};
   function renderPublicChatUsers(){
     const box=$("publicChatUsers"), q=($("publicChatUserSearch").value||"").trim().toLowerCase();
     const users=publicChatUsers.filter(u=>(u.username||"User").toLowerCase().includes(q));
-    box.innerHTML=users.map(u=>'<div class="public-dm-user '+(publicChatSelected?.id===u.id?'selected':'')+'" data-user="'+esc(u.id)+'"><span>'+esc(u.username||("User "+u.id.slice(0,8)))+'</span><button type="button">Chat</button></div>').join("")||"No other users found.";
+    box.innerHTML=users.map(u=>{
+      const count=directUnreadBySender[u.id]||0;
+      return '<div class="public-dm-user '+(publicChatSelected?.id===u.id?'selected':'')+'" data-user="'+esc(u.id)+'"><span>'+esc(u.username||("User "+u.id.slice(0,8)))+'</span><span class="dm-user-right">'+(count?'<span class="dm-unread-count" title="'+count+' unread message'+(count===1?'':'s')+'">'+count+'</span>':'')+'<button type="button">Chat</button></span></div>';
+    }).join("")||"No other users found.";
     box.querySelectorAll(".public-dm-user").forEach(el=>el.onclick=()=>{const u=publicChatUsers.find(x=>x.id===el.dataset.user);if(u){publicChatSelected=u;renderPublicChatUsers();loadPublicChat();}});
+  }
+  async function refreshDirectUnreadBySender(){
+    if(!currentUser||!client)return;
+    const {data,error}=await client.from("public_chat_messages").select("id,user_id,username,message,created_at").eq("recipient_id",currentUser.id).order("created_at",{ascending:false}).limit(500);
+    if(error)return;
+    const counts={};
+    for(const m of data||[])if(new Date(m.created_at).getTime()>getLastRead("direct",currentUser.id))counts[m.user_id]=(counts[m.user_id]||0)+1;
+    directUnreadBySender=counts;renderPublicChatUsers();
   }
   async function loadPublicChat(){
     const box=$("publicChatHistory");
@@ -1474,7 +1486,7 @@
     const names={};names[currentUser.id]="You";names[u]=publicChatSelected.username||"User";
     box.innerHTML=(data||[]).map(m=>'<div class="user-chat-msg"><small>'+esc(names[m.user_id]||m.username||"User")+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet. Start the conversation!";
     box.scrollTop=box.scrollHeight;$("publicChatError").textContent="";
-    const latest=(data||[]).filter(m=>m.recipient_id===currentUser.id).reduce((n,m)=>Math.max(n,new Date(m.created_at).getTime()),0);if(latest)setLastRead("direct",currentUser.id,latest);setUnreadBadge("publicChatUnreadBadge",0);
+    const latest=(data||[]).filter(m=>m.recipient_id===currentUser.id).reduce((n,m)=>Math.max(n,new Date(m.created_at).getTime()),0);if(latest)setLastRead("direct",currentUser.id,latest);setUnreadBadge("publicChatUnreadBadge",0);await refreshDirectUnreadBySender();
   }
   async function sendPublicChat(){
     const input=$("publicChatInput"), message=input.value.trim();
@@ -1588,10 +1600,10 @@
     $("userChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendUserChat();}};
     $("userChatRefresh").onclick=loadUserChat;
     $("userChatClose").onclick=()=>hide("userChatOverlay");
-    $("publicChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}if("Notification" in window&&Notification.permission==="default"){try{Notification.requestPermission();}catch(_){}}show("publicChatOverlay");await loadPublicChatUsers();await loadPublicChat();};
+    $("publicChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}if("Notification" in window&&Notification.permission==="default"){try{Notification.requestPermission();}catch(_){}}show("publicChatOverlay");await loadPublicChatUsers();await refreshDirectUnreadBySender();await loadPublicChat();};
     $("publicChatSend").onclick=sendPublicChat;
     $("publicChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendPublicChat();}};
-    $("publicChatRefresh").onclick=async()=>{await loadPublicChatUsers();await loadPublicChat();};
+    $("publicChatRefresh").onclick=async()=>{await loadPublicChatUsers();await refreshDirectUnreadBySender();await loadPublicChat();};
     $("publicChatUserSearch").oninput=renderPublicChatUsers;
     $("publicChatClose").onclick=()=>hide("publicChatOverlay");
     $("recommendButton").onclick=()=>{if(!currentUser){openAuth(false);return;}show("recommendOverlay");};
