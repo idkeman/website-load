@@ -1419,7 +1419,7 @@
     const senderIds=[...new Set(messages.filter(m=>m.sender_id&&m.sender_id!==currentUser.id).map(m=>m.sender_id))];
     const senderNames={};
     if(senderIds.length){
-      const {data:profiles}=await client.from("profiles").select("id,username,email").in("id",senderIds);
+      const {data:profiles}=await client.from("profiles").select("id,username").in("id",senderIds);
       (profiles||[]).forEach(p=>{senderNames[p.id]=p.username||p.email||("Account "+String(p.id).slice(0,8));});
     }
     box.innerHTML=messages.map(m=>{
