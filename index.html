@@ -1345,7 +1345,7 @@
     if(!currentUser||!client){setUnreadBadge("publicChatUnreadBadge",0);return;}
     const {data,error:e}=await client.from("public_chat_messages").select("id,user_id,username,message,created_at").eq("recipient_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
     if(e)return;
-    const messages=data||[], lastRead=getLastRead("direct",currentUser.id);
+    const messages=data||[], lastRead=getLastRead("direct",currentUser.id);\n    const {data:knownUsers}=await client.rpc("chat_list_users");\n    const userNames=new Map((knownUsers||[]).map(u=>[u.id,u.username]).filter(x=>x[1]));
     setUnreadBadge("publicChatUnreadBadge",messages.filter(m=>new Date(m.created_at).getTime()>lastRead).length);
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
@@ -1356,7 +1356,7 @@
     }
     const fresh=messages.filter(m=>new Date(m.created_at).getTime()>Math.max(lastNotified,lastRead)).sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
     for(const m of fresh){
-      const sender=m.username||("User "+String(m.user_id).slice(0,8));
+      const sender=userNames.get(m.user_id)||m.username||("User "+String(m.user_id).slice(0,8));
       showMessageNotice(sender,m.message,m.user_id);
       if("Notification" in window&&Notification.permission==="granted"){try{new Notification("New message from "+sender,{body:m.message.slice(0,180),tag:"website-load-message-"+m.id});}catch(_){}}
     }
