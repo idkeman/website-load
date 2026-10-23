@@ -1350,10 +1350,11 @@
     const storageKey="website-load-direct-last-notified-"+currentUser.id;
     let lastNotified=0;try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
     if(!directChatNoticeInitialized){
-      if(!lastNotified&&messages.length){lastNotified=new Date(messages[0].created_at).getTime();try{localStorage.setItem(storageKey,String(lastNotified));}catch(_){}}
-      directChatNoticeInitialized=true;return;
+      // On first load, notify about unread messages rather than silently marking them as seen.
+      directChatNoticeInitialized=true;
+      if(!lastNotified)lastNotified=lastRead;
     }
-    const fresh=messages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
+    const fresh=messages.filter(m=>new Date(m.created_at).getTime()>Math.max(lastNotified,lastRead)).sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
     for(const m of fresh){
       const sender=m.username||("User "+String(m.user_id).slice(0,8));
       showMessageNotice(sender,m.message,m.user_id);
@@ -1600,10 +1601,9 @@
     $("adminClose").onclick=()=>hide("adminOverlay");
     $("banSignOut").onclick=async()=>{hide("banOverlay");await client.auth.signOut();};
     $("authPassword").onkeydown=e=>{if(e.key==="Enter")submitAuth();};
-    client.auth.onAuthStateChange(()=>refreshAccount());
-    refreshAccount();
-    updateUnreadBadges();
-    setInterval(updateUnreadBadges,15000);
+    client.auth.onAuthStateChange(async()=>{directChatNoticeInitialized=false;await refreshAccount();await updateUnreadBadges();});
+    refreshAccount().then(()=>updateUnreadBadges());
+    setInterval(()=>{if(currentUser)updateUnreadBadges();},15000);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
