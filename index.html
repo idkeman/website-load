@@ -1375,6 +1375,64 @@
     }
     if(fresh.length){lastNotified=Math.max(...fresh.map(m=>new Date(m.created_at).getTime()));try{localStorage.setItem(storageKey,String(lastNotified));}catch(_){}}
   }
+  let adminNoticeInitialized=false;
+  let adminNoticeTimer=null;
+  function showAdminMessageNotice(sender,message,userId){
+    const notice=$("messageNotice");
+    notice.textContent="✉️ New admin chat message from "+sender+": "+message;
+    notice.dataset.adminChatUserId=userId||"";
+    notice.dataset.noticeKind="admin";
+    notice.style.display="block";
+    notice.onclick=async()=>{
+      notice.style.display="none";
+      if(!currentUser)return;
+      const profileRole=(await client.from("profiles").select("role").eq("id",currentUser.id).maybeSingle()).data?.role;
+      if(profileRole==="admin"){
+        show("adminOverlay");
+        await loadUsers();
+        await openChat(notice.dataset.adminChatUserId);
+      }else{
+        show("userChatOverlay");
+        await loadUserChat();
+      }
+    };
+    if(adminNoticeTimer)clearTimeout(adminNoticeTimer);
+    adminNoticeTimer=setTimeout(()=>{notice.style.display="none";},10000);
+  }
+  async function checkAdminChatNotifications(role){
+    if(!currentUser||!client)return;
+    let query=client.from("admin_messages").select("id,user_id,sender_id,message,created_at").neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+    if(role!=="admin")query=query.eq("user_id",currentUser.id);
+    const {data,error}=await query;
+    if(error)return;
+    const messages=data||[];
+    const storageKey="website-load-admin-chat-last-notified-"+currentUser.id;
+    let lastNotified=0;
+    try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
+    if(!adminNoticeInitialized){
+      adminNoticeInitialized=true;
+      if(!lastNotified){
+        const readKey=role==="admin"?"admin":"user";
+        lastNotified=Math.max(0,...messages.map(m=>getLastRead(readKey,role==="admin"?m.user_id:currentUser.id)));
+      }
+    }
+    const fresh=messages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    for(const m of fresh){
+      let sender="Admin";
+      if(role==="admin"){
+        const u=adminUsersCache.find(x=>x.id===m.user_id);
+        sender=u?.username||u?.email||"User";
+      }
+      showAdminMessageNotice(sender,m.message,m.user_id);
+      if("Notification" in window&&Notification.permission==="granted"){
+        try{new Notification("New admin chat message from "+sender,{body:(m.message||"").slice(0,180),tag:"website-load-admin-chat-"+m.id});}catch(_){}
+      }
+    }
+    if(fresh.length){
+      lastNotified=Math.max(...fresh.map(m=>new Date(m.created_at).getTime()));
+      try{localStorage.setItem(storageKey,String(lastNotified));}catch(_){}
+    }
+  }
   async function updateUnreadBadges(){
     if(!currentUser||!client){setUnreadBadge("userUnreadBadge",0);setUnreadBadge("adminUnreadBadge",0);setUnreadBadge("publicChatUnreadBadge",0);return;}
     const {data:profile}=await client.from("profiles").select("role").eq("id",currentUser.id).maybeSingle();
@@ -1387,6 +1445,7 @@
       if(!e){const n=(data||[]).filter(m=>new Date(m.created_at).getTime()>getLastRead("user",currentUser.id)).length;setUnreadBadge("userUnreadBadge",n);}
       setUnreadBadge("adminUnreadBadge",0);
     }
+    await checkAdminChatNotifications(profile?.role==="admin"?"admin":"user");
     await updateDirectChatNotifications();
   }
   async function openChat(id){
