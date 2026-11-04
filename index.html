@@ -60,6 +60,48 @@
 @media(max-width:700px){.admin-tools{grid-template-columns:1fr}.admin-chat-compose{flex-direction:column}}
 </style>
 
+<style>
+/* Complete dashboard redesign — keeps the existing feature IDs and app logic intact. */
+:root{color-scheme:dark;--bg:#080d1b;--panel:#101a2d;--panel2:#131f36;--line:rgba(148,174,220,.16);--muted:#9aaac4;--text:#f4f7ff;--blue:#5b9cff;--cyan:#54e0d0}
+html,body{min-height:100%;height:auto;background:radial-gradient(ellipse at 15% 0%,#142b50 0,transparent 42%),radial-gradient(ellipse at 90% 12%,#1d1742 0,transparent 36%),var(--bg)!important;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;font-size:15px!important;overflow-x:hidden}
+body{padding:0!important;margin:0!important;overflow-y:auto!important}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.15;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:44px 44px}
+#bg,#snowCanvas{pointer-events:none;opacity:.12}
+.site-shell{position:relative;z-index:2;max-width:1440px;margin:auto;padding:0 34px}
+.topbar{min-height:88px;display:flex;align-items:center;justify-content:space-between;gap:22px;border-bottom:1px solid var(--line);margin-bottom:34px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;min-width:max-content}
+.brand-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#438dff,#7657ee);font-weight:900;letter-spacing:-2px;box-shadow:0 8px 24px #386fff44}
+.brand strong{display:block;font-size:16px;letter-spacing:.02em}.brand small{display:block;margin-top:3px;color:#8194b4;font-size:9px;letter-spacing:.2em}
+.topbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.topbar-actions button{position:static!important;display:inline-flex!important;align-items:center;justify-content:center;z-index:5!important;width:auto!important;padding:9px 13px!important;border:1px solid var(--line)!important;border-radius:10px!important;background:#15233b!important;color:#dce8ff!important;font:600 12px Inter,system-ui,sans-serif!important;box-shadow:none!important;white-space:nowrap}
+.topbar-actions button:hover{border-color:#5b9cff!important;background:#1d3153!important}
+#adminButton{display:none!important;background:#39266b!important}body.admin #adminButton{display:inline-flex!important}
+.dashboard{padding-bottom:28px}
+.hero-panel{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;min-height:255px;padding:42px 50px;border:1px solid rgba(119,155,230,.22);border-radius:24px;background:linear-gradient(112deg,rgba(24,48,83,.96),rgba(25,30,68,.92) 65%,rgba(45,34,88,.92));box-shadow:0 24px 70px #0003}
+.hero-panel:after{content:"";position:absolute;width:420px;height:420px;right:9%;top:-270px;border-radius:50%;border:1px solid #87aaff26;box-shadow:0 0 0 34px #87aaff0a,0 0 0 70px #87aaff08}
+.hero-copy{position:relative;z-index:1;max-width:690px}.eyebrow,.section-kicker{font-size:10px;font-weight:800;letter-spacing:.18em;color:#8da9d7}.status-dot{display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#4ee0bb;box-shadow:0 0 12px #4ee0bb}
+.hero-copy h1{margin:16px 0 12px;padding:0;border:0;background:none;box-shadow:none;font-size:clamp(34px,5vw,58px);line-height:1.04;letter-spacing:-.055em;font-weight:850}.hero-copy h1 span{background:linear-gradient(90deg,#72b5ff,#8d8aff,#62e2d0);background-clip:text;-webkit-background-clip:text;color:transparent}
+.hero-copy>p{max-width:600px;color:#b6c4dc;font-style:normal;font-size:15px;line-height:1.7;margin:0}.hero-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:25px;color:#a9bddc;font-size:11px}.hero-art{position:relative;width:230px;height:190px;flex:0 0 230px}.orbit{position:absolute;border:1px solid #8bb2ff55;border-radius:50%;transform:rotate(-25deg)}.orbit-one{width:190px;height:115px;top:35px;left:10px}.orbit-two{width:145px;height:190px;top:0;left:34px;transform:rotate(35deg)}.hero-glyph{position:absolute;inset:48px 0 0;text-align:center;font-size:92px;font-weight:200;color:#c4dcff;text-shadow:0 0 45px #5c9cff}.hero-chip{position:absolute;padding:7px 10px;border:1px solid #8cb6ff55;border-radius:8px;background:#162c50;color:#cde1ff;font-size:9px;letter-spacing:.12em}.chip-one{top:8px;right:0}.chip-two{bottom:9px;left:0}
+.launch-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr);gap:20px;margin-top:22px;align-items:stretch}
+.launch-card,.info-card,.hub-note,.browser-panel{border:1px solid var(--line);border-radius:19px;background:linear-gradient(145deg,rgba(18,30,51,.97),rgba(13,23,40,.97));box-shadow:0 16px 42px #0002}
+.launch-card{padding:30px 34px}.launch-card h2,.browser-heading h2{border:0;background:none;box-shadow:none;padding:0;margin:8px 0;font-size:25px;letter-spacing:-.04em;color:#f3f6ff}.section-description,.browser-heading p{margin:0 0 24px;color:var(--muted);font-size:13px;font-style:normal}
+.input-group{margin:18px 0}.input-group label,.recommend-field+label{display:block;margin-bottom:8px;color:#b8c9e5;font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}
+.url-input,.preset-select{display:block;width:100%;box-sizing:border-box;padding:15px 16px!important;border:1px solid #344968!important;border-radius:11px!important;background:#0a1425!important;color:#f4f7ff!important;font:14px Inter,system-ui,sans-serif!important;box-shadow:none!important;outline:none}
+.url-input:focus,.preset-select:focus{border-color:#68a7ff!important;box-shadow:0 0 0 3px #5799ff20!important}.url-input::placeholder{color:#70829f}.preset-select option{background:#101a2d;color:white}
+.direct-tab-option{display:flex;align-items:center;gap:9px;margin:8px 0 18px;color:#9eafc9;font-size:12px}.direct-tab-option input{width:16px;height:16px;accent-color:#5b9cff}
+.launch-actions{display:flex;gap:10px;flex-wrap:wrap}.launch-actions button{position:static!important;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 18px!important;border:1px solid transparent!important;border-radius:11px!important;font:700 13px Inter,system-ui,sans-serif!important;box-shadow:none!important}.go-button{flex:1;background:linear-gradient(110deg,#448fff,#735ce9)!important;color:white!important}.go-button:hover{filter:brightness(1.12)}#fullscreenBtn{background:#1a2b46!important;border-color:#344968!important;color:#d8e7ff!important;margin:0!important}
+.launch-footnote{margin-top:19px;padding-top:16px;border-top:1px solid var(--line);color:#7f91ae;font-size:11px}.launch-footnote kbd{padding:3px 6px;border:1px solid #3c4d68;border-radius:5px;background:#17253b;color:#d6e4fa}
+.info-column{display:flex;flex-direction:column;gap:12px}.info-card{display:flex;gap:14px;padding:18px}.info-icon{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:11px;background:#243e67;color:#8dbdff;font-size:20px}.info-card h3{margin:5px 0;color:#e9f1ff;font-size:14px}.info-card p,.hub-note p{margin:0;color:#9aabc4;font-size:11px;line-height:1.6;font-style:normal}.live-card{background:linear-gradient(120deg,#172e4c,#14283d)}.hub-note{padding:16px 18px;border-color:#735de344;background:#1a1a3b}.hub-note strong{display:block;margin-bottom:6px;color:#b9aaff;font-size:12px}
+.browser-panel{margin-top:22px;padding:26px}.browser-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}.browser-heading h2{font-size:23px}.browser-heading p{margin:0}.browser-heading #clock{position:static!important;color:#9eb7df;font:600 17px ui-monospace,monospace!important}
+.browser-frame{overflow:hidden;border:1px solid #344967;border-radius:14px;background:#070d18}.browser-chrome{height:38px;display:flex;align-items:center;gap:6px;padding:0 13px;border-bottom:1px solid #273750;background:#111c2e}.browser-chrome>span{width:8px;height:8px;border-radius:50%;background:#e56e79}.browser-chrome>span:nth-child(2){background:#e6bd63}.browser-chrome>span:nth-child(3){background:#57c994}.browser-label{margin-left:10px;color:#6f85a6;font-size:9px;letter-spacing:.16em}.browser-frame .iframe{height:min(62vh,650px);min-height:320px}.browser-frame iframe{display:block;width:100%!important;height:100%!important;min-height:320px;border:0!important;border-radius:0!important;box-shadow:none!important;background:#080d17}
+.site-footer{display:flex;justify-content:space-between;gap:15px;padding:22px 2px 30px;color:#7184a2;font-size:10px;letter-spacing:.03em}
+h1,h2,h3,p{font-family:inherit}p{font-style:normal}
+#messageNotice{top:100px!important;right:24px!important;border:1px solid #5b9cff!important;border-radius:14px!important;background:#132441!important;color:#fff!important;font:13px Inter,system-ui,sans-serif!important;box-shadow:0 18px 50px #0008!important}
+.auth-overlay{padding:18px;box-sizing:border-box;background:#030817d9!important}.auth-card{font-family:Inter,system-ui,sans-serif!important;background:linear-gradient(145deg,#14223b,#0c1629)!important;border:1px solid #49618a!important;border-radius:20px!important;box-shadow:0 24px 80px #0009!important}.auth-card h2{font-size:23px!important}.auth-card input,.auth-card textarea{font-family:inherit!important}.auth-card button{font-family:inherit!important}
+@media(max-width:900px){.site-shell{padding:0 20px}.hero-panel{padding:32px}.hero-art{opacity:.6;transform:scale(.85);transform-origin:right center}.launch-grid{grid-template-columns:1fr}.info-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.hub-note{grid-column:1/-1}}
+@media(max-width:650px){.site-shell{padding:0 13px}.topbar{align-items:flex-start;flex-direction:column;padding:18px 0;margin-bottom:18px}.topbar-actions{justify-content:flex-start;width:100%}.topbar-actions button{font-size:11px!important;padding:8px 10px!important}.hero-panel{min-height:0;padding:26px 22px}.hero-art{display:none}.hero-copy h1{font-size:38px}.hero-meta{gap:10px}.launch-card{padding:22px 18px}.info-column{grid-template-columns:1fr}.hub-note{grid-column:auto}.browser-panel{padding:17px}.browser-heading{align-items:flex-start}.browser-heading #clock{font-size:13px!important}.browser-frame .iframe{height:55vh;min-height:280px}.site-footer{flex-direction:column}.admin-tools{grid-template-columns:1fr!important}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+</style>
 </head>
 
 <style>
@@ -1020,123 +1062,128 @@
 
 
 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/5/50/Black_colour.jpg" alt="header">
-  <div id="clock">00:00:00</div>
-  <div class="bolder">
-  <span>iframe abuse</span>
-  </div>
-  <br>
-  <br>
-  <h1>Change iFrame Source</h1>
-  <h2>This will work with anything blocked by goguardian, not the web filter (securly).</h2>
-  <h2>Yes, that includes youtube, spotify, tiktok, or any other obviously blocked website like that. Will not work.</h2>
-  <h2>MUST HAVE "Https://" AT START OR IT WONT WORK.</h2>
-  <h2>This will be frequently updated depending on how much or how often I get more websites.</h2>
-  <h2>Now that I'm aware of it being back to back blocked, within the hour, the hub will be updated for the new website, the new soluton.</h2>
-  <h2>You cannot use this for google sites. (google.sites)</h2>
-  <h2><strong>You can share this with all your friends!(Please, do.)</strong></h2>
-  <hr>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="iFrame Abuse home"><span class="brand-mark">IF</span><span><strong>iFrame Abuse</strong><small>THE WEB ACCESS HUB</small></span></a>
+      <div class="topbar-actions">
+        <button id="accountButton" type="button">Log In</button>
+        <button id="adminButton" type="button">Admin Panel <span id="adminUnreadBadge" class="unread-badge" style="display:none">0</span></button>
+        <button id="userChatButton" type="button">💬 Messages <span id="userUnreadBadge" class="unread-badge" style="display:none">0</span></button>
+        <button id="publicChatButton" type="button">🌐 Direct Chat <span id="publicChatUnreadBadge" class="unread-badge" style="display:none">0</span></button>
+        <button id="recommendButton" type="button">＋ Recommend</button>
+      </div>
+    </header>
 
-<div class="url-input-section">
-  <div class="input-group">
-    <label for="urlInput">Enter URL</label>
-    <input type="text" id="urlInput" placeholder="https://example.com" class="url-input">
-  </div>
+    <main class="dashboard">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="status-dot"></span> YOUR PERSONAL WEB HUB</div>
+          <h1>Find your next <span>destination.</span></h1>
+          <p>Open a site from the curated library or enter a URL to get started. New links and updates are added regularly.</p>
+          <div class="hero-meta"><span>⚡ Quick access</span><span>✦ Curated destinations</span><span>↗ Updated regularly</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-glyph">↗</div><div class="hero-chip chip-one">EXPLORE</div><div class="hero-chip chip-two">CONNECT</div></div>
+      </section>
 
-  <div class="divider">
-    <span>or</span>
-  </div>
+      <section class="launch-grid">
+        <div class="launch-card">
+          <div class="section-kicker">01 / QUICK LAUNCH</div>
+          <h2>Where do you want to go?</h2>
+          <p class="section-description">Paste a website address or choose one from the preset library.</p>
+          <div class="input-group">
+            <label for="urlInput">Website address</label>
+            <input type="text" id="urlInput" placeholder="https://example.com" class="url-input" autocomplete="url">
+          </div>
+          <div class="input-group">
+            <label for="presets">Browse the library</label>
+            <select id="presets" class="preset-select">
+              <option value="">Select a preset URL...</option>
+              <optgroup label="🎮 Games">
+                <option value="https://www.eggermath.com/pokemon-silver">Pokémon Silver</option>
+                <option value="https://unpkg.com/classroomduck@1.0.89/index.html">ClassroomDuck</option>
+                <option value="https://archive.org/details/the-binding-of-isaac_202111?hide_flag_warning=bad_metadata&amp;rand=1300574563">The Binding of Isaac (Internet Archive)</option>
+                <option value="https://mod.fnfhub.net/24879/">Indie cross (FNF)</option>
+                <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Basketball Legends</option>
+                <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
+                <option value="https://unblockedgamespod.gitlab.io/">Games Pod</option>
+                <option value="https://waitwhosjoe.github.io/">More Games</option>
+                <option value="https://76ezgames.github.io/">EZ Games</option>
+                <option value="https://games.budsin.dev/">Budsin Games</option>
+              </optgroup>
+              <optgroup label="🎬 Movies & Misc">
+                <option value="https://indica.bond/">Indica</option>
+                <option value="https://www.lookmovie2.to/">LookMovie2</option>
+                <option value="https://anigo.ro/">Anigo</option>
+                <option value="https://animeuniverse.best/">Anime Universe</option>
+                <option value="https://lunastream.gay/">Lunastream</option>
+                <option value="https://thesolver.oneapp.dev/">Sudoku Solver</option>
+                <option value="https://s3.amazonaws.com/opiumbest/study">Study</option>
+                <option value="https://soundbuttonsworld.com">Soundboard World</option>
+                <option value="https://districtmenus.com/de/smyrna-school-district/">Lunch menu</option>
+              </optgroup>
+              <optgroup label="🔗 Proxies">
+                <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
+                <option value="https://bullguardian.s3.amazonaws.com/index.html">Bullguardian</option>
+                <option value="https://catclass.net/">Catclass</option>
+                <option value="https://1void-vision2.global.ssl.fastly.net/">Froggies Backup</option>
+                <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
+                <option value="https://truffledisgoated.nya.pub/">Truffled</option>
+                <option value="https://kyro.li/">Kyro</option>
+              </optgroup>
+              <optgroup label="My own creations!">
+                <option value="https://idkeman.github.io/snake-replica/">Snake Replica</option>
+                <option value="https://idkeman.github.io/MinecraftCaseSimulator/">Minecraft Case Simulator</option>
+                <option value="https://bit.ly/1mp0st3">1mp0st3</option>
+                <option value="https://idkeman.github.io/Towerd/">Towerd</option>
+                <option value="https://idkeman.github.io/Game-making/">Game-making</option>
+                <option value="https://idkeman.github.io/n-gon/">n-gon</option>
+                <option value="https://heartivelovestv.pages.dev/">Heart I Love TV</option>
+                <option value="https://idkeman.github.io/CaseClicker/">CaseClicker</option>
+                <option value="https://idkeman.github.io/Pokemon-cheat-sheet/">Pokémon Cheat Sheet</option>
+                <option value="https://idkeman.github.io/bitburner/">Bitburner</option>
+                <option value="https://idkeman.github.io/Proxy/">Proxy</option>
+                <option value="https://idkeman.github.io/Google/">Google</option>
+                <option value="https://idkeman.github.io/retro-bowl-modded/">Retro Bowl Modded</option>
+                <option value="https://idkeman.github.io/adarkroom/">A Dark Room</option>
+              </optgroup>
+              <optgroup label="Working Proxies">
+                <option value="https://pgis.x10.mx/">PGIS 2</option>
+                <option value="https://0800webdev.github.io/PGIS/">PGIS GitHub Pages</option>
+                <option value="https://0800webdev.github.io/UBGdir/">UBGdir</option>
+              </optgroup>
+              <optgroup label="Scratch">
+                <option value="https://scratch.mit.edu/projects/701435319/">JJK game</option>
+                <option value="https://scratch.mit.edu/projects/1083783502/">Culling game</option>
+                <option value="https://scratch.mit.edu/projects/1050193575/">Shinjuku showdown</option>
+                <option value="https://scratch.mit.edu/projects/1004826310/">Yuji Itadori n Ryomen Sukuna</option>
+                <option value="https://scratch.mit.edu/projects/479266014/">Jotaro Kujo</option>
+                <option value="https://scratch.mit.edu/projects/475566185/">Dio Brando</option>
+                <option value="https://scratch.mit.edu/projects/486826775/">Jean Pierre Polnareff</option>
+              </optgroup>
+            </select>
+          </div>
+          <label class="direct-tab-option" for="openBaseUrlInNewTab"><input type="checkbox" id="openBaseUrlInNewTab"> Open URL directly in a new tab (base URL only)</label>
+          <div class="launch-actions">
+            <button onclick="changeIframeSource()" id="goButton" class="go-button"><span>Launch destination</span><span aria-hidden="true">↗</span></button>
+            <button onclick="toggleFullscreen()" id="fullscreenBtn">⛶ Fullscreen</button>
+          </div>
+          <div class="launch-footnote"><span>⌘</span> Tip: press <kbd>Ctrl</kbd> + <kbd>L</kbd> to jump straight to the address field.</div>
+        </div>
 
-  <div class="input-group">
-    <label for="presets">Choose from Presets</label>
-    <select id="presets" class="preset-select">
-      <option value="">Select a preset URL...</option>
-      
-      <optgroup label="🎮 Games">
-        <option value="https://www.eggermath.com/pokemon-silver">Pokémon Silver</option>
-        <option value="https://unpkg.com/classroomduck@1.0.89/index.html">ClassroomDuck</option>
-        <option value="https://archive.org/details/the-binding-of-isaac_202111?hide_flag_warning=bad_metadata&amp;rand=1300574563">The Binding of Isaac (Internet Archive)</option>
-        <option value="https://mod.fnfhub.net/24879/">Indie cross (FNF)</option>
-        <option value="https://basketballlegends-online.github.io/go/class-12.html#/">Basketball Legends</option>
-        <option value="https://d3rtzzzsiu7gdr.cloudfront.net/">Hypackel</option>
-        <option value="https://unblockedgamespod.gitlab.io/">Games Pod</option>
-        <option value="https://waitwhosjoe.github.io/">More Games</option>
-        <option value="https://76ezgames.github.io/">EZ Games</option>
-        <option value="https://games.budsin.dev/">Budsin Games</option>
-      </optgroup>
-      
-      <optgroup label="🎬 Movies & Misc">
-        <option value="https://indica.bond/">Indica</option>
-        <option value="https://www.lookmovie2.to/">LookMovie2</option>
-        <option value="https://anigo.ro/">Anigo</option>
-        <option value="https://animeuniverse.best/">Anime Universe</option>
-        <option value="https://lunastream.gay/">Lunastream</option>
-        <option value="https://thesolver.oneapp.dev/">Sudoku Solver</option>
-        <option value="https://s3.amazonaws.com/opiumbest/study">Study</option>
-        <option value="https://soundbuttonsworld.com">Soundboard World</option>
-        <option value="https://districtmenus.com/de/smyrna-school-district/">Lunch menu</option>
-      </optgroup>
-      
-      <optgroup label="🔗 Proxies">
-        <option value="https://policeinfo.global.ssl.fastly.net/math/">Froggies</option>
-        <option value="https://bullguardian.s3.amazonaws.com/index.html">Bullguardian</option>
-        <option value="https://catclass.net/">Catclass</option>
-        <option value="https://1void-vision2.global.ssl.fastly.net/">Froggies Backup</option>
-        <option value="https://cfisd.mathforkids.buzz.cdn.cloudflare.net/">Velara</option>
-        <option value="https://truffledisgoated.nya.pub/">Truffled</option>
-        <option value="https://kyro.li/">Kyro</option>
-      </optgroup>
+        <aside class="info-column">
+          <div class="info-card live-card"><div class="info-icon">◉</div><div><span class="section-kicker">LIVE HUB</span><h3>Always evolving</h3><p>The hub is updated frequently as websites change or become unavailable.</p></div></div>
+          <div class="info-card"><div class="info-icon">ⓘ</div><div><span class="section-kicker">GOOD TO KNOW</span><h3>Before you launch</h3><p>Some sites block embedding, and compatibility varies. Google Sites are not supported by this method.</p></div></div>
+          <div class="info-card"><div class="info-icon">↗</div><div><span class="section-kicker">SHARE THE HUB</span><h3>Know someone who'd use this?</h3><p>Share the hub with friends. Use Recommend to suggest another destination.</p></div></div>
+          <div class="hub-note"><strong>Compatibility note</strong><p>This tool does not bypass every network filter. Some websites—including services that restrict embedding—may not load here.</p></div>
+        </aside>
+      </section>
 
-      <optgroup label="My own creations!">
-        <option value="https://idkeman.github.io/snake-replica/">Snake Replica</option>
-        <option value="https://idkeman.github.io/MinecraftCaseSimulator/">Minecraft Case Simulator</option>
-        <option value="https://bit.ly/1mp0st3">1mp0st3</option>
-        <option value="https://idkeman.github.io/Towerd/">Towerd</option>
-        <option value="https://idkeman.github.io/Game-making/">Game-making</option>
-        <option value="https://idkeman.github.io/n-gon/">n-gon</option>
-        <option value="https://heartivelovestv.pages.dev/">Heart I Love TV</option>
-        <option value="https://idkeman.github.io/CaseClicker/">CaseClicker</option>
-        <option value="https://idkeman.github.io/Pokemon-cheat-sheet/">Pokémon Cheat Sheet</option>
-        <option value="https://idkeman.github.io/bitburner/">Bitburner</option>
-        <option value="https://idkeman.github.io/Proxy/">Proxy</option>
-        <option value="https://idkeman.github.io/Google/">Google</option>
-        <option value="https://idkeman.github.io/retro-bowl-modded/">Retro Bowl Modded</option>
-        <option value="https://idkeman.github.io/adarkroom/">A Dark Room</option>
-      </optgroup>
-
-      <optgroup label="Working Proxies">
-        <option value="https://pgis.x10.mx/">PGIS 2</option>
-        <option value="https://0800webdev.github.io/PGIS/">PGIS GitHub Pages</option>
-        <option value="https://0800webdev.github.io/UBGdir/">UBGdir</option>
-      </optgroup>
-
-      <optgroup label="Scratch">
-        <option value="https://scratch.mit.edu/projects/701435319/">JJK game</option>
-        <option value="https://scratch.mit.edu/projects/1083783502/">Culling game</option>
-        <option value="https://scratch.mit.edu/projects/1050193575/">Shinjuku showdown</option>
-        <option value="https://scratch.mit.edu/projects/1004826310/">Yuji Itadori n Ryomen Sukuna</option>
-        <option value="https://scratch.mit.edu/projects/479266014/">Jotaro Kujo</option>
-        <option value="https://scratch.mit.edu/projects/475566185/">Dio Brando</option>
-        <option value="https://scratch.mit.edu/projects/486826775/">Jean Pierre Polnareff</option>
-    </select>
-  </div>
-</div>
-
-  <label class="direct-tab-option" for="openBaseUrlInNewTab">
-    <input type="checkbox" id="openBaseUrlInNewTab">
-    Open URL directly in a new tab (base URL only)
-  </label>
-
-<button onclick="changeIframeSource()" id="goButton" class="go-button">
-  <span>Go to URL</span>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linecap="round"/>
-  </svg>
-</button>
-  <button onclick="toggleFullscreen()" id="fullscreenBtn">Fullscreen</button>
-  <br>
-<div class="iframe">
-  <iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe>
+      <section class="browser-panel">
+        <div class="browser-heading"><div><div class="section-kicker">02 / PREVIEW WINDOW</div><h2>Workspace</h2><p>Use the preview below when a destination supports embedded viewing.</p></div><div id="clock">00:00:00</div></div>
+        <div class="browser-frame"><div class="browser-chrome"><span></span><span></span><span></span><div class="browser-label">DESTINATION PREVIEW</div></div><div class="iframe"><iframe id="iframebox" src="" style="width:100%; height:300px; border:1px solid #000;" allowfullscreen></iframe></div></div>
+      </section>
+    </main>
+    <footer class="site-footer"><span>iFrame Abuse · Web Access Hub</span><span>Built to make your next destination easier to find.</span></footer>
   </div>
 
   <section id="recordingSection">
