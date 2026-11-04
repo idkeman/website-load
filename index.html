@@ -100,6 +100,43 @@ h1,h2,h3,p{font-family:inherit}p{font-style:normal}
 .auth-overlay{padding:18px;box-sizing:border-box;background:#030817d9!important}.auth-card{font-family:Inter,system-ui,sans-serif!important;background:linear-gradient(145deg,#14223b,#0c1629)!important;border:1px solid #49618a!important;border-radius:20px!important;box-shadow:0 24px 80px #0009!important}.auth-card h2{font-size:23px!important}.auth-card input,.auth-card textarea{font-family:inherit!important}.auth-card button{font-family:inherit!important}
 @media(max-width:900px){.site-shell{padding:0 20px}.hero-panel{padding:32px}.hero-art{opacity:.6;transform:scale(.85);transform-origin:right center}.launch-grid{grid-template-columns:1fr}.info-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.hub-note{grid-column:1/-1}}
 @media(max-width:650px){.site-shell{padding:0 13px}.topbar{align-items:flex-start;flex-direction:column;padding:18px 0;margin-bottom:18px}.topbar-actions{justify-content:flex-start;width:100%}.topbar-actions button{font-size:11px!important;padding:8px 10px!important}.hero-panel{min-height:0;padding:26px 22px}.hero-art{display:none}.hero-copy h1{font-size:38px}.hero-meta{gap:10px}.launch-card{padding:22px 18px}.info-column{grid-template-columns:1fr}.hub-note{grid-column:auto}.browser-panel{padding:17px}.browser-heading{align-items:flex-start}.browser-heading #clock{font-size:13px!important}.browser-frame .iframe{height:55vh;min-height:280px}.site-footer{flex-direction:column}.admin-tools{grid-template-columns:1fr!important}}
+
+/* Original, more welcoming discovery experience */
+#bg{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;opacity:1!important;pointer-events:none!important}
+body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 18% 30%,rgba(38,126,153,.20),transparent 35%),radial-gradient(ellipse at 78% 22%,rgba(116,75,174,.22),transparent 34%),radial-gradient(ellipse at 58% 88%,rgba(30,100,151,.17),transparent 38%);filter:blur(28px);animation:ambientDrift 24s ease-in-out infinite alternate}
+@keyframes ambientDrift{0%{transform:translate3d(-2%,0,0) scale(1)}50%{transform:translate3d(2%,2%,0) scale(1.06)}100%{transform:translate3d(-1%,3%,0) scale(1.02)}}
+.site-shell{z-index:1}.topbar{border-bottom-color:rgba(164,190,224,.12)}
+.brand-mark{border-radius:50%;background:linear-gradient(145deg,#4fc6b2,#4c82df);box-shadow:0 0 0 7px rgba(80,174,193,.08),0 10px 28px #3b9fbb33}
+.hero-panel{background:linear-gradient(115deg,rgba(17,48,66,.91),rgba(27,37,72,.88) 58%,rgba(55,39,83,.86));border-color:rgba(130,195,208,.25);backdrop-filter:blur(14px)}
+.hero-panel:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.045) 48%,transparent 72%);transform:translateX(-100%);animation:heroSheen 12s ease-in-out infinite}
+@keyframes heroSheen{0%,45%{transform:translateX(-100%)}75%,100%{transform:translateX(100%)}}
+.hero-glyph{animation:glyphFloat 7s ease-in-out infinite;color:#b6f0e8;text-shadow:0 0 45px #57cdbb88}
+@keyframes glyphFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-13px) rotate(8deg)}}
+.launch-card,.info-card,.hub-note,.browser-panel{backdrop-filter:blur(12px);background:linear-gradient(145deg,rgba(20,37,53,.91),rgba(15,27,43,.91))}
+.launch-card{border-color:rgba(115,194,190,.22)}
+.go-button{background:linear-gradient(110deg,#269e9b,#477edb)!important}
+.explore-section{margin-top:54px}
+.explore-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.explore-heading h2{margin:8px 0 6px;font-size:clamp(23px,3vw,31px);letter-spacing:-.04em;color:#f1f6ff}
+.explore-heading p{margin:0;color:#9eafc6;font-size:13px}
+.explore-spark{font-size:42px;color:#6ed3c2;text-shadow:0 0 25px #53b9ae66;animation:sparkTurn 18s linear infinite}
+@keyframes sparkTurn{to{transform:rotate(360deg)}}
+.explore-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.explore-card{position:relative;display:flex;align-items:center;gap:13px;min-height:115px;padding:17px;text-align:left;border:1px solid rgba(151,180,211,.16);border-radius:17px;background:linear-gradient(145deg,rgba(24,44,61,.93),rgba(18,31,49,.94));color:#f4f7ff;cursor:pointer;transition:transform .25s ease,border-color .25s ease,background .25s ease;overflow:hidden}
+.explore-card:after{content:"";position:absolute;width:110px;height:110px;right:-38px;bottom:-55px;border-radius:50%;background:var(--glow);filter:blur(2px);opacity:.23;transition:transform .35s ease}
+.explore-card:hover{transform:translateY(-5px);border-color:rgba(114,207,201,.55);background:linear-gradient(145deg,rgba(31,61,75,.97),rgba(24,38,61,.97))}
+.explore-card:hover:after{transform:scale(1.8)}
+.explore-art{position:relative;z-index:1;display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:13px;background:rgba(255,255,255,.07);font-size:21px}
+.explore-card-copy{position:relative;z-index:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.explore-card-copy strong{font-size:13px}.explore-card-copy small{color:#9aacc4;font-size:10px;line-height:1.45}
+.explore-arrow{position:relative;z-index:1;margin-left:auto;color:#8ccfc6;font-size:18px}
+.games-card{--glow:#38b6a2}.watch-card{--glow:#9b72d5}.make-card{--glow:#5598df}.tools-card{--glow:#d49c62}
+.browser-panel{margin-top:44px}
+.site-footer{border-top:1px solid rgba(151,180,211,.12);margin-top:24px}
+@media(max-width:1000px){.explore-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.explore-grid{grid-template-columns:1fr}.explore-card{min-height:88px}.explore-heading{align-items:flex-start}.explore-spark{font-size:30px}}
+@media(prefers-reduced-motion:reduce){body:after,.hero-panel:before,.hero-glyph,.explore-spark{animation:none!important}}
+
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -1052,13 +1089,13 @@ h1,h2,h3,p{font-family:inherit}p{font-style:normal}
         </div>
     </div>
 </div>
-  <canvas id="bg"></canvas>
+  <canvas id="bg" aria-hidden="true"></canvas>
 
 
 
   <div class="site-shell">
     <header class="topbar">
-      <a class="brand" href="./" aria-label="iFrame Abuse home"><span class="brand-mark">IF</span><span><strong>iFrame Abuse</strong><small>THE WEB ACCESS HUB</small></span></a>
+      <a class="brand" href="./" aria-label="iFrame Abuse home"><span class="brand-mark">IF</span><span><strong>The Hub</strong><small>YOUR PLACE TO DISCOVER</small></span></a>
       <div class="topbar-actions">
         <button id="accountButton" type="button">Log In</button>
         <button id="adminButton" type="button">Admin Panel <span id="adminUnreadBadge" class="unread-badge" style="display:none">0</span></button>
@@ -1071,12 +1108,12 @@ h1,h2,h3,p{font-family:inherit}p{font-style:normal}
     <main class="dashboard">
       <section class="hero-panel">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="status-dot"></span> YOUR PERSONAL WEB HUB</div>
-          <h1>Find your next <span>destination.</span></h1>
-          <p>Open a site from the curated library or enter a URL to get started. New links and updates are added regularly.</p>
-          <div class="hero-meta"><span>⚡ Quick access</span><span>✦ Curated destinations</span><span>↗ Updated regularly</span></div>
+          <div class="eyebrow"><span class="status-dot"></span> A LITTLE CORNER OF THE INTERNET</div>
+          <h1>There's more out <span>there.</span></h1>
+          <p>Games, tools, things to watch, and projects made by the community. Take a look around, find something new, or bring your own favorite along.</p>
+          <div class="hero-meta"><span>✦ Hand-picked finds</span><span>🎮 Games & projects</span><span>↗ Always something new</span></div>
         </div>
-        <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-glyph">↗</div><div class="hero-chip chip-one">EXPLORE</div><div class="hero-chip chip-two">CONNECT</div></div>
+        <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-glyph">✳</div><div class="hero-chip chip-one">WANDER</div><div class="hero-chip chip-two">DISCOVER</div></div>
       </section>
 
       <section class="launch-grid">
@@ -1170,6 +1207,16 @@ h1,h2,h3,p{font-family:inherit}p{font-style:normal}
           <div class="info-card"><div class="info-icon">↗</div><div><span class="section-kicker">SHARE THE HUB</span><h3>Know someone who'd use this?</h3><p>Share the hub with friends. Use Recommend to suggest another destination.</p></div></div>
           <div class="hub-note"><strong>Compatibility note</strong><p>This tool does not bypass every network filter. Some websites—including services that restrict embedding—may not load here.</p></div>
         </aside>
+      </section>
+
+      <section class="explore-section" aria-labelledby="exploreTitle">
+        <div class="explore-heading"><div><div class="section-kicker">A FEW PLACES TO START</div><h2 id="exploreTitle">What are you in the mood for?</h2><p>Pick a path and see where it takes you. There's plenty more in the library.</p></div><span class="explore-spark" aria-hidden="true">✳</span></div>
+        <div class="explore-grid">
+          <button class="explore-card games-card" type="button" data-explore="Games"><span class="explore-art">🎮</span><span class="explore-card-copy"><strong>Play something</strong><small>Arcade favorites, new games, and more</small></span><span class="explore-arrow">↗</span></button>
+          <button class="explore-card watch-card" type="button" data-explore="Movies"><span class="explore-art">✦</span><span class="explore-card-copy"><strong>Watch & unwind</strong><small>Movies, anime, and things to explore</small></span><span class="explore-arrow">↗</span></button>
+          <button class="explore-card make-card" type="button" data-explore="My own creations"><span class="explore-art">🛠</span><span class="explore-card-copy"><strong>Made around here</strong><small>Games and projects built by me</small></span></button>
+          <button class="explore-card tools-card" type="button" data-explore="Proxies"><span class="explore-art">🧭</span><span class="explore-card-copy"><strong>Find useful tools</strong><small>Proxies, helpers, and other discoveries</small></span><span class="explore-arrow">↗</span></button>
+        </div>
       </section>
 
       <section class="browser-panel">
@@ -1878,66 +1925,26 @@ var sc_project = 13207478;
 
 
 
-    const canvas = document.getElementById("bg");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-
-    const stars = [];
-    const STAR_COUNT = 200;
-
-    class Star {
-      constructor() {
-        this.reset();
+    // Slow-moving constellation background, kept subtle behind the content.
+    const canvas=document.getElementById("bg"),ctx=canvas&&canvas.getContext("2d");
+    if(canvas&&ctx){
+      let width=0,height=0,particles=[],lastFrame=0;
+      const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function resizeBackground(){
+        const dpr=Math.min(window.devicePixelRatio||1,1.5);width=window.innerWidth;height=window.innerHeight;
+        canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+        const count=Math.min(72,Math.max(30,Math.round(width/22)));
+        particles=Array.from({length:count},()=>({x:Math.random()*width,y:Math.random()*height,r:.6+Math.random()*1.5,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.13,phase:Math.random()*Math.PI*2}));
       }
-
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.radius = Math.random() * 1.5;
-        this.speed = Math.random() * 0.5 + 0.2;
+      function drawBackground(time){
+        if(!ctx)return;if(!reduceMotion&&time-lastFrame<32){requestAnimationFrame(drawBackground);return;}lastFrame=time;ctx.clearRect(0,0,width,height);
+        for(let i=0;i<particles.length;i++){const p=particles[i];if(!reduceMotion){p.x+=p.vx;p.y+=p.vy;p.phase+=.008;if(p.x<0)p.x=width;if(p.x>width)p.x=0;if(p.y<0)p.y=height;if(p.y>height)p.y=0;}
+          ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle="rgba(151,218,221,"+(.22+Math.sin(p.phase)*.12)+")";ctx.fill();
+          for(let j=i+1;j<particles.length;j++){const q=particles[j],dist=Math.hypot(p.x-q.x,p.y-q.y);if(dist<125){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle="rgba(104,163,199,"+((1-dist/125)*.10)+")";ctx.lineWidth=.7;ctx.stroke();}}
+        }if(!reduceMotion)requestAnimationFrame(drawBackground);
       }
-
-      update() {
-        this.y += this.speed;
-        if (this.y > canvas.height) {
-          this.reset();
-          this.y = 0;
-        }
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "white";
-      }
+      resizeBackground();window.addEventListener("resize",resizeBackground,{passive:true});if(reduceMotion)drawBackground(0);else requestAnimationFrame(drawBackground);
     }
-
-    for (let i = 0; i < STAR_COUNT; i++) {
-      stars.push(new Star());
-    }
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let star of stars) {
-        star.update();
-        star.draw();
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
 
     // Loading screen management
 
@@ -2235,6 +2242,19 @@ window.addEventListener("load", function() {
         localStorage.setItem("hasVisited", "true");
     }
 });
+  // Discovery cards select a collection without launching anything unexpectedly.
+document.addEventListener("DOMContentLoaded",function(){
+  document.querySelectorAll("[data-explore]").forEach(function(card){
+    card.addEventListener("click",function(){
+      const wanted=card.getAttribute("data-explore").toLowerCase(),select=document.getElementById("presets");
+      if(!select)return;
+      const group=Array.from(select.querySelectorAll("optgroup")).find(function(g){return g.label.toLowerCase().includes(wanted);});
+      const first=group&&group.querySelector("option");
+      if(first){select.value=first.value;select.dispatchEvent(new Event("change",{bubbles:true}));document.getElementById("urlInput").scrollIntoView({behavior:"smooth",block:"center"});}
+    });
+  });
+});
+
   // Account bans are handled by the Supabase moderation system above.
 
   // Add this to make the interface more interactive
