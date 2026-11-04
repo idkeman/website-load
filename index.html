@@ -945,6 +945,28 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
 </style>
 
 <body>
+<style>
+/* Integrated Proxy home + selectable Hub bookmark library */
+#mainTabs{position:sticky;top:0;z-index:15000;display:flex;align-items:center;gap:8px;padding:10px max(16px,calc((100vw - 1440px)/2 + 34px));background:rgba(7,13,27,.94);border-bottom:1px solid rgba(148,174,220,.18);backdrop-filter:blur(18px)}
+#mainTabs .tab-brand{margin-right:auto;color:#f3f7ff;font-weight:850;letter-spacing:.02em}
+#mainTabs button{border:1px solid rgba(148,174,220,.2);border-radius:10px;padding:10px 17px;background:#14233a;color:#c7d6ee;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+#mainTabs button[aria-selected="true"]{background:linear-gradient(110deg,#448fff,#735ce9);border-color:transparent;color:white;box-shadow:0 5px 18px #426ee844}
+#proxyMainView{display:block;position:relative;width:100%;height:calc(100vh - 53px);min-height:480px;background:#070d18;z-index:1}
+#proxyMainView iframe{display:block;width:100%;height:100%;border:0;background:#070d18}
+body.hub-bookmarks-view #proxyMainView{display:none}
+body.hub-bookmarks-view .site-shell{display:block}
+body:not(.hub-bookmarks-view) .site-shell{display:none}
+@media(max-width:600px){#mainTabs{padding:9px 12px}#mainTabs .tab-brand{font-size:13px}#mainTabs button{padding:9px 12px}}
+</style>
+<nav id="mainTabs" aria-label="Main navigation">
+  <span class="tab-brand">THE HUB</span>
+  <button type="button" id="proxyTab" aria-selected="true">⌕ Browse</button>
+  <button type="button" id="bookmarksTab" aria-selected="false">▦ Bookmarks</button>
+</nav>
+<section id="proxyMainView" aria-label="Proxy browser">
+  <iframe id="proxyMainFrame" src="https://idkeman.github.io/Proxy/" title="Proxy browser" allow="fullscreen; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</section>
+
 
 <div id="messageNotice" role="status" aria-live="polite" style="display:none;position:fixed;right:18px;top:18px;z-index:20000;max-width:min(360px,90vw);padding:14px 18px;background:#102044;border:1px solid #6485ff;border-radius:12px;box-shadow:0 8px 28px #0009;color:#fff;cursor:pointer"></div>
 
@@ -1133,12 +1155,12 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
         </div>
         <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-glyph">✳</div><div class="hero-chip chip-one">WANDER</div><div class="hero-chip chip-two">DISCOVER</div></div>
       
-        <form class="hub-main-search" id="hubProxySearch" autocomplete="off">
+        <form class="hub-main-search" id="hubProxySearch" autocomplete="off" style="display:none">
           <span class="hub-search-icon" aria-hidden="true">⌕</span>
           <input id="hubProxyInput" type="text" inputmode="url" placeholder="Search the web or enter a website..." aria-label="Search the web or enter a website" autocomplete="off" spellcheck="false">
           <button type="submit">Explore <span aria-hidden="true">↗</span></button>
         </form>
-        <div class="hub-search-hints"><span>Try a website</span><button type="button" data-hub-search="youtube.com">YouTube</button><button type="button" data-hub-search="google.com">Google</button><button type="button" data-hub-search="crazygames.com">Games</button></div>
+        <div class="hub-search-hints" style="display:none"><span>Try a website</span><button type="button" data-hub-search="youtube.com">YouTube</button><button type="button" data-hub-search="google.com">Google</button><button type="button" data-hub-search="crazygames.com">Games</button></div>
 </section>
 
       <section class="launch-grid">
@@ -2269,21 +2291,20 @@ window.addEventListener("load", function() {
 });
   
 document.addEventListener("DOMContentLoaded",function(){
- const form=document.getElementById("hubProxySearch"),input=document.getElementById("hubProxyInput");
- if(!form||!input)return;
- function openThroughProxy(raw){
-  const value=String(raw||"").trim();if(!value)return;
-  const hasProtocol=value.startsWith("http://")||value.startsWith("https://");
-  const looksLikeDomain=value.includes(".")&&!value.includes(" ");
-  const destination=looksLikeDomain?(hasProtocol?value:"https://"+value):"https://www.google.com/search?q="+encodeURIComponent(value);
-  try{const u=new URL(destination);if(u.protocol!=="http:"&&u.protocol!=="https:")return;}catch(e){return;}
-  window.open("https://idkeman.github.io/Proxy/?url="+encodeURIComponent(destination),"_blank","noopener");
+ const proxyTab=document.getElementById("proxyTab"),bookmarksTab=document.getElementById("bookmarksTab");
+ function selectTab(which){
+  const bookmarks=which==="bookmarks";
+  document.body.classList.toggle("hub-bookmarks-view",bookmarks);
+  proxyTab.setAttribute("aria-selected",String(!bookmarks));
+  bookmarksTab.setAttribute("aria-selected",String(bookmarks));
+  if(bookmarks) window.scrollTo({top:0,behavior:"instant"});
  }
- form.addEventListener("submit",function(e){e.preventDefault();openThroughProxy(input.value);});
- document.querySelectorAll("[data-hub-search]").forEach(function(button){button.addEventListener("click",function(){input.value=button.getAttribute("data-hub-search");form.requestSubmit();});});
+ proxyTab.addEventListener("click",()=>selectTab("proxy"));
+ bookmarksTab.addEventListener("click",()=>selectTab("bookmarks"));
+ selectTab("proxy");
 });
 
-// Discovery cards select a collection without launching anything unexpectedly.
+// // Discovery cards select a collection without launching anything unexpectedly.
 document.addEventListener("DOMContentLoaded",function(){
   document.querySelectorAll("[data-explore]").forEach(function(card){
     card.addEventListener("click",function(){
