@@ -101,6 +101,24 @@ h1,h2,h3,p{font-family:inherit}p{font-style:normal}
 @media(max-width:900px){.site-shell{padding:0 20px}.hero-panel{padding:32px}.hero-art{opacity:.6;transform:scale(.85);transform-origin:right center}.launch-grid{grid-template-columns:1fr}.info-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.hub-note{grid-column:1/-1}}
 @media(max-width:650px){.site-shell{padding:0 13px}.topbar{align-items:flex-start;flex-direction:column;padding:18px 0;margin-bottom:18px}.topbar-actions{justify-content:flex-start;width:100%}.topbar-actions button{font-size:11px!important;padding:8px 10px!important}.hero-panel{min-height:0;padding:26px 22px}.hero-art{display:none}.hero-copy h1{font-size:38px}.hero-meta{gap:10px}.launch-card{padding:22px 18px}.info-column{grid-template-columns:1fr}.hub-note{grid-column:auto}.browser-panel{padding:17px}.browser-heading{align-items:flex-start}.browser-heading #clock{font-size:13px!important}.browser-frame .iframe{height:55vh;min-height:280px}.site-footer{flex-direction:column}.admin-tools{grid-template-columns:1fr!important}}
 
+
+/* Proxy-inspired main screen, styled as part of The Hub */
+.hero-panel{min-height:350px;align-items:flex-start;padding:clamp(28px,5vw,58px);overflow:hidden}
+.hero-copy{position:relative;z-index:2;width:min(760px,100%)}
+.hero-copy h1{font-size:clamp(38px,6vw,64px);line-height:1.04;max-width:680px}
+.hero-copy>p{max-width:610px;font-size:15px;line-height:1.75}
+.hub-main-search{position:relative;display:flex;align-items:center;gap:10px;width:min(700px,100%);margin-top:30px;padding:8px 9px 8px 18px;border:1px solid rgba(176,218,232,.28);border-radius:18px;background:rgba(8,17,31,.78);box-shadow:0 16px 55px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.06);backdrop-filter:blur(16px);transition:border-color .2s,box-shadow .2s}
+.hub-main-search:focus-within{border-color:rgba(116,220,209,.8);box-shadow:0 0 0 4px rgba(84,190,177,.12),0 18px 55px rgba(0,0,0,.26)}
+.hub-search-icon{font-size:29px;color:#8fd9d1;line-height:1}
+.hub-main-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#f5fbff;font-size:15px;padding:12px 2px}
+.hub-main-search input::placeholder{color:#8da2b8}
+.hub-main-search button{border:0;border-radius:12px;padding:13px 19px;background:linear-gradient(110deg,#269e9b,#477edb);color:white;font-weight:700;cursor:pointer;white-space:nowrap;transition:transform .2s,filter .2s}
+.hub-main-search button:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.hub-search-hints{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px;color:#91a8bd;font-size:11px}
+.hub-search-hints button{border:1px solid rgba(159,190,214,.18);border-radius:999px;background:rgba(255,255,255,.055);color:#c4d7e9;padding:6px 11px;cursor:pointer}
+.hub-search-hints button:hover{background:rgba(88,178,180,.16);border-color:rgba(115,211,201,.5)}
+@media(max-width:560px){.hero-panel{padding:25px 20px}.hub-main-search{gap:6px;padding-left:12px}.hub-main-search input{font-size:13px}.hub-main-search button{padding:12px 13px;font-size:12px}.hub-search-hints{gap:6px}}
+
 /* Original, more welcoming discovery experience */
 #bg{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;opacity:1!important;pointer-events:none!important}
 body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 18% 30%,rgba(38,126,153,.20),transparent 35%),radial-gradient(ellipse at 78% 22%,rgba(116,75,174,.22),transparent 34%),radial-gradient(ellipse at 58% 88%,rgba(30,100,151,.17),transparent 38%);filter:blur(28px);animation:ambientDrift 24s ease-in-out infinite alternate}
@@ -1114,7 +1132,14 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
           <div class="hero-meta"><span>✦ Hand-picked finds</span><span>🎮 Games & projects</span><span>↗ Always something new</span></div>
         </div>
         <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-glyph">✳</div><div class="hero-chip chip-one">WANDER</div><div class="hero-chip chip-two">DISCOVER</div></div>
-      </section>
+      
+        <form class="hub-main-search" id="hubProxySearch" autocomplete="off">
+          <span class="hub-search-icon" aria-hidden="true">⌕</span>
+          <input id="hubProxyInput" type="text" inputmode="url" placeholder="Search the web or enter a website..." aria-label="Search the web or enter a website" autocomplete="off" spellcheck="false">
+          <button type="submit">Explore <span aria-hidden="true">↗</span></button>
+        </form>
+        <div class="hub-search-hints"><span>Try a website</span><button type="button" data-hub-search="youtube.com">YouTube</button><button type="button" data-hub-search="google.com">Google</button><button type="button" data-hub-search="crazygames.com">Games</button></div>
+</section>
 
       <section class="launch-grid">
         <div class="launch-card">
@@ -2242,7 +2267,23 @@ window.addEventListener("load", function() {
         localStorage.setItem("hasVisited", "true");
     }
 });
-  // Discovery cards select a collection without launching anything unexpectedly.
+  
+document.addEventListener("DOMContentLoaded",function(){
+ const form=document.getElementById("hubProxySearch"),input=document.getElementById("hubProxyInput");
+ if(!form||!input)return;
+ function openThroughProxy(raw){
+  const value=String(raw||"").trim();if(!value)return;
+  const hasProtocol=value.startsWith("http://")||value.startsWith("https://");
+  const looksLikeDomain=value.includes(".")&&!value.includes(" ");
+  const destination=looksLikeDomain?(hasProtocol?value:"https://"+value):"https://www.google.com/search?q="+encodeURIComponent(value);
+  try{const u=new URL(destination);if(u.protocol!=="http:"&&u.protocol!=="https:")return;}catch(e){return;}
+  window.open("https://idkeman.github.io/Proxy/?url="+encodeURIComponent(destination),"_blank","noopener");
+ }
+ form.addEventListener("submit",function(e){e.preventDefault();openThroughProxy(input.value);});
+ document.querySelectorAll("[data-hub-search]").forEach(function(button){button.addEventListener("click",function(){input.value=button.getAttribute("data-hub-search");form.requestSubmit();});});
+});
+
+// Discovery cards select a collection without launching anything unexpectedly.
 document.addEventListener("DOMContentLoaded",function(){
   document.querySelectorAll("[data-explore]").forEach(function(card){
     card.addEventListener("click",function(){
