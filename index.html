@@ -1696,16 +1696,10 @@ body.hub-stats-view #statsTabView{display:block}
     const otherSender=selectedChatUser.username||selectedChatUser.email||("User "+String(chatUserId).slice(0,8));
     box.innerHTML=messages.map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":otherSender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
     box.scrollTop=box.scrollHeight;
-    // Only mark incoming messages that were actually loaded into this conversation as read.
-    const incoming=messages.filter(m=>m.sender_id===chatUserId);
-    if(incoming.length){
-      const throughId=Math.max(...incoming.map(m=>Number(m.id)||0));
-      const {error:readError}=await client.rpc("admin_mark_chat_read",{
-        p_user_id:chatUserId,
-        p_through_message_id:throughId
-      });
-      if(readError)console.error("Could not mark admin chat as read:",readError.message);
-    }
+    // Opening the conversation marks every message received up to this moment as read,
+    // including older unread messages outside the 200-message display window.
+    const {error:readError}=await client.rpc("admin_mark_chat_read",{p_user_id:chatUserId});
+    if(readError)console.error("Could not mark admin chat as read:",readError.message);
     await updateUnreadBadges();
   }
   async function sendChat(){
