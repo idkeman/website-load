@@ -953,19 +953,68 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
 #mainTabs button[aria-selected="true"]{background:linear-gradient(110deg,#448fff,#735ce9);border-color:transparent;color:white;box-shadow:0 5px 18px #426ee844}
 #proxyMainView{display:block;position:relative;width:100%;height:calc(100vh - 53px);min-height:480px;background:#070d18;z-index:1}
 #proxyMainView iframe{display:block;width:100%;height:100%;border:0;background:#070d18}
-body.hub-bookmarks-view #proxyMainView{display:none}
+body.hub-bookmarks-view #proxyMainView,body.hub-stats-view #proxyMainView{display:none}
 body.hub-bookmarks-view .site-shell{display:block}
 body:not(.hub-bookmarks-view) .site-shell{display:none}
+#statsTabView{display:none;min-height:calc(100vh - 54px);padding:28px clamp(14px,3vw,42px) 42px;box-sizing:border-box;color:#eef5ff;background:radial-gradient(ellipse at 15% 0%,#142b50 0,transparent 42%),radial-gradient(ellipse at 90% 12%,#1d1742 0,transparent 36%),#080d1b}
+body.hub-stats-view #statsTabView{display:block}
+.stats-wrap{max-width:1500px;margin:auto}
+.stats-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.stats-head h1{margin:6px 0;font-size:clamp(28px,4vw,42px);letter-spacing:-.05em}
+.stats-head p{margin:0;color:#9aabc4;font-size:13px}
+.stats-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats-actions button,.stats-ranges button{border:1px solid #344968;border-radius:9px;background:#14233a;color:#dce8ff;padding:9px 13px;font:700 11px Inter,system-ui,sans-serif;cursor:pointer}
+.stats-ranges{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}
+.stats-ranges button[aria-pressed=true]{background:linear-gradient(110deg,#448fff,#735ce9);border-color:transparent;color:white}
+.stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.stat-card{min-width:0;min-height:137px;padding:15px;border:1px solid rgba(148,174,220,.18);border-radius:15px;background:linear-gradient(145deg,rgba(20,37,59,.96),rgba(13,23,40,.96));box-shadow:0 12px 30px #0002}
+.stat-card-top{display:flex;justify-content:space-between;align-items:center;color:#82b7ff;font-size:18px;margin-bottom:10px}
+.stat-live-dot{width:7px;height:7px;border-radius:50%;background:#4ee0bb;box-shadow:0 0 10px #4ee0bb88}
+.stat-card strong{display:block;font-size:clamp(23px,2.3vw,31px);line-height:1.1;letter-spacing:-.04em;overflow-wrap:anywhere}
+.stat-card b{display:block;margin-top:9px;color:#e5efff;font-size:12px}
+.stat-card small{display:block;margin-top:5px;color:#91a6c5;font-size:10px;line-height:1.4}
+.stats-lower{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,.8fr);gap:12px;margin-top:14px}
+.stats-panel{padding:18px;border:1px solid rgba(148,174,220,.18);border-radius:15px;background:rgba(16,27,46,.94);min-width:0}
+.stats-panel h2{margin:0 0 5px;font-size:15px}.stats-panel p{margin:0;color:#91a6c5;font-size:11px}
+.stats-hours{height:140px;display:flex;align-items:flex-end;gap:4px;margin-top:18px;border-bottom:1px solid #354968}
+.hour-col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.hour-col i{display:block;width:100%;max-width:24px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#66d7ca,#477edb);min-height:3px}
+.hour-col small{height:12px;color:#8095b5;font-size:8px}
+#statsStatus{margin-top:14px;color:#90a8c9;font-size:10px}
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){.stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats-lower{grid-template-columns:1fr}}
+@media(max-width:520px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stat-card{min-height:125px;padding:12px}.stats-head{align-items:flex-start}}
 @media(max-width:600px){#mainTabs{padding:9px 12px}#mainTabs .tab-brand{font-size:13px}#mainTabs button{padding:9px 12px}}
 </style>
 <nav id="mainTabs" aria-label="Main navigation">
   <span class="tab-brand">THE HUB</span>
   <button type="button" id="proxyTab" aria-selected="true">⌕ Browse</button>
   <button type="button" id="bookmarksTab" aria-selected="false">▦ Bookmarks</button>
+  <button type="button" id="statsTab" aria-selected="false">▥ Statistics</button>
 </nav>
 <script defer src="./essentials.js"></script>
+<script defer src="./stats.js"></script>
 <section id="proxyMainView" aria-label="Proxy browser">
   <iframe id="proxyMainFrame" src="https://idkeman.github.io/Proxy/" title="Proxy browser" allow="fullscreen; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</section>
+<section id="statsTabView" aria-label="Website statistics">
+  <div class="stats-wrap">
+    <header class="stats-head">
+      <div><div class="section-kicker">THE HUB · ANALYTICS</div><h1>Statistics</h1><p>A live overview of traffic, visitors, activity, and device usage.</p></div>
+      <div class="stats-actions"><button id="statsRefresh" type="button">↻ Refresh data</button></div>
+    </header>
+    <div class="stats-ranges" aria-label="Statistics date range">
+      <button type="button" data-range="24h" aria-pressed="false">24 hours</button>
+      <button type="button" data-range="7d" aria-pressed="true">7 days</button>
+      <button type="button" data-range="30d" aria-pressed="false">30 days</button>
+      <button type="button" data-range="all" aria-pressed="false">All time</button>
+    </div>
+    <div id="statsGrid" class="stats-grid" aria-live="polite"></div>
+    <div class="stats-lower">
+      <section class="stats-panel"><h2>Hourly traffic</h2><p>Page views grouped by hour of day for the selected range.</p><div id="statsHours" class="stats-hours"></div></section>
+      <section class="stats-panel"><h2>Analytics feed</h2><p id="statsTotalEvents">Loading events…</p><div id="statsStatus" role="status">Connecting to analytics…</div></section>
+    </div>
+  </div>
 </section>
 
 
@@ -2292,16 +2341,19 @@ window.addEventListener("load", function() {
 });
   
 document.addEventListener("DOMContentLoaded",function(){
- const proxyTab=document.getElementById("proxyTab"),bookmarksTab=document.getElementById("bookmarksTab");
+ const proxyTab=document.getElementById("proxyTab"),bookmarksTab=document.getElementById("bookmarksTab"),statsTab=document.getElementById("statsTab");
  function selectTab(which){
-  const bookmarks=which==="bookmarks";
+  const bookmarks=which==="bookmarks",stats=which==="stats";
   document.body.classList.toggle("hub-bookmarks-view",bookmarks);
-  proxyTab.setAttribute("aria-selected",String(!bookmarks));
+  document.body.classList.toggle("hub-stats-view",stats);
+  proxyTab.setAttribute("aria-selected",String(which==="proxy"));
   bookmarksTab.setAttribute("aria-selected",String(bookmarks));
-  if(bookmarks) window.scrollTo({top:0,behavior:"instant"});
+  statsTab.setAttribute("aria-selected",String(stats));
+  if(which!=="proxy") window.scrollTo({top:0,behavior:"instant"});
  }
  proxyTab.addEventListener("click",()=>selectTab("proxy"));
  bookmarksTab.addEventListener("click",()=>selectTab("bookmarks"));
+ statsTab.addEventListener("click",()=>selectTab("stats"));
  selectTab("proxy");
 });
 
