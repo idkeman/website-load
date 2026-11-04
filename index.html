@@ -1927,7 +1927,14 @@ body.hub-stats-view #statsTabView{display:block}
     async function refreshChatNotifications(){
       if(!currentUser||!client||unreadRefreshInFlight)return;
       unreadRefreshInFlight=true;
-      try{await updateUnreadBadges();}
+      try{
+        // Keep an open admin conversation current and mark messages read as they arrive.
+        if(selectedChatUser&&$("adminOverlay")?.classList.contains("show")){
+          await loadChat();
+        }else{
+          await updateUnreadBadges();
+        }
+      }
       catch(err){console.warn("Chat notification refresh failed:",err);}
       finally{unreadRefreshInFlight=false;}
     }
