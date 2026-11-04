@@ -42,7 +42,7 @@
 .auth-note{color:#b9c8ff;font-size:12px;line-height:1.5}
 #adminOverlay .auth-card{width:min(850px,94vw);max-height:82vh;overflow:auto}
 .admin-user-count{margin:12px 0;padding:12px 14px;border:1px solid rgba(120,150,255,.35);border-radius:10px;background:rgba(30,80,180,.2);color:#fff;font-size:15px;font-weight:700}.admin-user{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid rgba(120,150,255,.25);padding:12px;margin:8px 0;border-radius:10px;background:rgba(0,0,0,.25)}
-.admin-user small{display:block;color:#a9b8e8;margin-top:3px}.admin-unread-dot{display:inline-block;width:8px;height:8px;margin-left:7px;border-radius:50%;background:#ff3b4f;vertical-align:middle;box-shadow:0 0 7px rgba(255,59,79,.75)}
+.admin-user small{display:block;color:#a9b8e8;margin-top:3px}.admin-unread-dot{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;margin-left:7px;border-radius:999px;background:#ef3340;color:#fff;font-size:11px;font-weight:800;line-height:19px;vertical-align:middle;box-sizing:border-box;box-shadow:0 0 8px rgba(255,59,79,.35)}
 .status-banned{color:#ff8080}.status-active{color:#8dffb0}
 .admin-log{font-size:11px;color:#aebeff;margin-top:14px}
 .admin-tools{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.4fr);gap:14px;margin-top:14px}
@@ -1496,7 +1496,7 @@ body.hub-stats-view #statsTabView{display:block}
       const verified=!!u.verified;
       const unread=adminUnreadByUser[u.id]||0;
       return '<div class="admin-user"><div><strong>'+esc(u.username||"(no username)")+
-      (unread?'<span class="admin-unread-dot" title="'+unread+' unread message'+(unread===1?'':'s')+'" aria-label="'+unread+' unread messages"></span>':'')+
+      (unread?'<span class="admin-unread-dot" title="'+unread+' unread message'+(unread===1?'':'s')+'" aria-label="'+unread+' unread messages">'+unread+'</span>':'')+
       '</strong> — '+esc(u.email||"")+'<small class="'+(banned?"status-banned":"status-active")+'">'+
       (banned?"BANNED":"ACTIVE")+' · '+esc(u.role)+(verified?' · <span class="admin-verified">✓ VERIFIED</span>':'')+
       (banned?" · "+esc(u.ban_reason||"No reason")+" · "+esc(u.banned_until?new Date(u.banned_until).toLocaleString():"Permanent"):"")+
@@ -1516,7 +1516,7 @@ body.hub-stats-view #statsTabView{display:block}
     box.innerHTML=adminUsersCache.filter(u=>u.id!==currentUser?.id).map(u=>{
       const unread=adminUnreadByUser[u.id]||0;
       return '<div class="admin-chat-user"><span><strong>'+esc(u.username||"(no username)")+
-      (unread?'<span class="admin-unread-dot" title="'+unread+' unread message'+(unread===1?'':'s')+'" aria-label="'+unread+' unread messages"></span>':'')+
+      (unread?'<span class="admin-unread-dot" title="'+unread+' unread message'+(unread===1?'':'s')+'" aria-label="'+unread+' unread messages">'+unread+'</span>':'')+
       '</strong><br><small>'+esc(u.email||"")+'</small></span><button data-chat-user="'+u.id+'">Chat</button></div>';
     }).join("")||" No other users.";
     box.querySelectorAll("[data-chat-user]").forEach(b=>b.onclick=()=>openChat(b.dataset.chatUser));
@@ -1633,7 +1633,8 @@ body.hub-stats-view #statsTabView{display:block}
       if(!e){
         adminUnreadByUser={};
         for(const m of (data||[])){
-          if(new Date(m.created_at).getTime()>getLastRead("admin",m.user_id))
+          // Only count messages actually sent by the account owner, not admin replies.
+          if(m.sender_id===m.user_id && new Date(m.created_at).getTime()>getLastRead("admin",m.user_id))
             adminUnreadByUser[m.user_id]=(adminUnreadByUser[m.user_id]||0)+1;
         }
         setUnreadBadge("adminUnreadBadge",Object.values(adminUnreadByUser).reduce((sum,n)=>sum+n,0));
@@ -1646,11 +1647,12 @@ body.hub-stats-view #statsTabView{display:block}
           name.querySelector(".admin-unread-dot")?.remove();
           const unread=adminUnreadByUser[userId]||0;
           if(unread){
-            const dot=document.createElement("span");
-            dot.className="admin-unread-dot";
-            dot.title=unread+" unread message"+(unread===1?"":"s");
-            dot.setAttribute("aria-label",dot.title);
-            name.appendChild(dot);
+            const badge=document.createElement("span");
+            badge.className="admin-unread-dot";
+            badge.textContent=String(unread);
+            badge.title=unread+" unread message"+(unread===1?"":"s");
+            badge.setAttribute("aria-label",badge.title);
+            name.appendChild(badge);
           }
         });
       }
@@ -1677,7 +1679,7 @@ body.hub-stats-view #statsTabView{display:block}
     if(e){box.textContent="Chat unavailable: "+e.message;return;}
     const otherSender=selectedChatUser.username||selectedChatUser.email||("User "+String(selectedChatUser.id).slice(0,8));
     box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":otherSender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
-    const incoming=(data||[]).filter(m=>m.sender_id!==currentUser?.id);
+    const incoming=(data||[]).filter(m=>m.sender_id===selectedChatUser.id);
     if(incoming.length)setLastRead("admin",selectedChatUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
     box.scrollTop=box.scrollHeight;
     await updateUnreadBadges();
