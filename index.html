@@ -1608,7 +1608,8 @@ body.hub-stats-view #statsTabView{display:block}
         lastNotified=Math.max(0,...messages.map(m=>getLastRead(readKey,role==="admin"?m.user_id:currentUser.id)));
       }
     }
-    const relevantMessages=role==="admin"?messages.filter(m=>m.sender_id===m.user_id):messages;\n    const fresh=relevantMessages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    const relevantMessages=role==="admin"?messages.filter(m=>m.sender_id===m.user_id):messages;
+    const fresh=relevantMessages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
     for(const m of fresh){
       let sender="Admin";
       if(role==="admin"){
