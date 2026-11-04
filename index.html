@@ -1593,23 +1593,21 @@ body.hub-stats-view #statsTabView{display:block}
   }
   async function checkAdminChatNotifications(role){
     if(!currentUser||!client)return;
-    let query=client.from("admin_messages").select("id,user_id,sender_id,message,created_at").neq("sender_id",currentUser.id).order("id",{ascending:false}).limit(100);
+    let query=client.from("admin_messages").select("id,user_id,sender_id,message,created_at").neq("sender_id",currentUser.id).order("id",{ascending:false}).limit(200);
     if(role!=="admin")query=query.eq("user_id",currentUser.id);
     const {data,error}=await query;
     if(error)return;
     const messages=data||[];
-    const storageKey="website-load-admin-chat-last-notified-"+currentUser.id;
+    // Message IDs are monotonic; timestamps can collide or arrive out of order.
+    const storageKey="website-load-admin-chat-last-notified-v2-"+currentUser.id;
     let lastNotified=0;
     try{lastNotified=Number(localStorage.getItem(storageKey)||0);}catch(_){}
+    const relevantMessages=role==="admin"?messages.filter(m=>m.sender_id===m.user_id):messages;
     if(!adminNoticeInitialized){
       adminNoticeInitialized=true;
-      if(!lastNotified){
-        const readKey=role==="admin"?"admin":"user";
-        lastNotified=Math.max(0,...messages.map(m=>getLastRead(readKey,role==="admin"?m.user_id:currentUser.id)));
-      }
+      if(!lastNotified)lastNotified=Math.max(0,...relevantMessages.map(m=>Number(m.id)||0));
     }
-    const relevantMessages=role==="admin"?messages.filter(m=>m.sender_id===m.user_id):messages;
-    const fresh=relevantMessages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    const fresh=relevantMessages.filter(m=>(Number(m.id)||0)>lastNotified).sort((a,b)=>(Number(a.id)||0)-(Number(b.id)||0));
     for(const m of fresh){
       let sender="Admin";
       if(role==="admin"){
@@ -1622,7 +1620,7 @@ body.hub-stats-view #statsTabView{display:block}
       }
     }
     if(fresh.length){
-      lastNotified=Math.max(...fresh.map(m=>new Date(m.created_at).getTime()));
+      lastNotified=Math.max(...fresh.map(m=>Number(m.id)||0));
       try{localStorage.setItem(storageKey,String(lastNotified));}catch(_){}
     }
   }
