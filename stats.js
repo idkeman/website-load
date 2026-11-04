@@ -28,7 +28,7 @@ setInterval(()=>record("heartbeat"),60000);
 window.addEventListener("focus",()=>record("heartbeat"));
 const periodButtons=[...root.querySelectorAll("[data-range]")];
 let range="7d",events=[],loadError="";
-const ranges={24h:24*60*60*1000,7d:7*86400000,30d:30*86400000,all:Infinity};
+const ranges={"24h":24*60*60*1000,"7d":7*86400000,"30d":30*86400000,"all":Infinity};
 const fmt=n=>Number(n||0).toLocaleString();
 function within(e,ms){return ms===Infinity||new Date(e.created_at).getTime()>=Date.now()-ms;}
 function render(){
