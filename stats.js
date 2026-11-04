@@ -67,7 +67,7 @@ function render(){
  ["Chrome sessions",unique(filtered.filter(e=>e.metadata?.browser==="Chrome")),"Browser breakdown","◉"],
  ["Peak activity hour",events.length?String(peak).padStart(2,"0")+":00":"—","Most page views · local display time","⌚"]
  ];
- $("statsGrid").innerHTML=cards.map(([label,value,sub,icon])=>'<article class="stat-card"><div class="stat-card-top"><span>'+icon+'</span><span class="stat-live-dot"></span></div><strong>'+fmt(value)+'</strong><b>'+label+'</b><small>'+sub+'</small></article>').join("");
+ $("statsGrid").innerHTML=cards.map(([label,value,sub,icon])=>'<article class="stat-card"><div class="stat-card-top"><span>'+icon+'</span><span class="stat-live-dot"></span></div><strong>'+((typeof value==='number')?fmt(value):value)+'</strong><b>'+label+'</b><small>'+sub+'</small></article>').join("");
  $("statsStatus").textContent=loadError||("Updated "+now().toLocaleTimeString()+" · "+fmt(events.length)+" events loaded");
  const bars=hours.map((v,i)=>'<div class="hour-col" title="'+String(i).padStart(2,"0")+':00 · '+v+' views"><i style="height:'+Math.max(3,Math.round(v/(Math.max(1,...hours))*100))+'%"></i><small>'+((i%3===0)?String(i).padStart(2,"0"):"")+'</small></div>').join("");
  $("statsHours").innerHTML=bars;
