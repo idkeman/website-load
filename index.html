@@ -1593,7 +1593,7 @@ body.hub-stats-view #statsTabView{display:block}
   }
   async function checkAdminChatNotifications(role){
     if(!currentUser||!client)return;
-    let query=client.from("admin_messages").select("id,user_id,sender_id,message,created_at").neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+    let query=client.from("admin_messages").select("id,user_id,sender_id,message,created_at").neq("sender_id",currentUser.id).order("id",{ascending:false}).limit(100);
     if(role!=="admin")query=query.eq("user_id",currentUser.id);
     const {data,error}=await query;
     if(error)return;
@@ -1608,7 +1608,7 @@ body.hub-stats-view #statsTabView{display:block}
         lastNotified=Math.max(0,...messages.map(m=>getLastRead(readKey,role==="admin"?m.user_id:currentUser.id)));
       }
     }
-    const fresh=messages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    const relevantMessages=role==="admin"?messages.filter(m=>m.sender_id===m.user_id):messages;\n    const fresh=relevantMessages.filter(m=>new Date(m.created_at).getTime()>lastNotified).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
     for(const m of fresh){
       let sender="Admin";
       if(role==="admin"){
@@ -1626,18 +1626,25 @@ body.hub-stats-view #statsTabView{display:block}
     }
   }
   async function updateUnreadBadges(){
-    if(!currentUser||!client){setUnreadBadge("userUnreadBadge",0);setUnreadBadge("adminUnreadBadge",0);setUnreadBadge("publicChatUnreadBadge",0);return;}
-    const {data:profile}=await client.from("profiles").select("role").eq("id",currentUser.id).maybeSingle();
+    if(!currentUser||!client){
+      adminUnreadByUser={};
+      setUnreadBadge("userUnreadBadge",0);setUnreadBadge("adminUnreadBadge",0);setUnreadBadge("publicChatUnreadBadge",0);
+      renderChatUsers();return;
+    }
+    const {data:profile,error:profileError}=await client.from("profiles").select("role").eq("id",currentUser.id).maybeSingle();
+    if(profileError){console.error("Unread role lookup failed:",profileError.message);return;}
     if(profile?.role==="admin"){
-      const {data,error:e}=await client.from("admin_messages").select("user_id,sender_id,created_at").neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(1000);
+      // Counts and read positions are stored in Supabase, so they stay consistent
+      // across refreshes, browsers, and devices instead of depending on localStorage.
+      const {data,error:e}=await client.rpc("admin_get_unread_counts");
       if(!e){
         adminUnreadByUser={};
-        for(const m of (data||[])){
-          // Only count messages actually sent by the account owner, not admin replies.
-          if(m.sender_id===m.user_id && new Date(m.created_at).getTime()>getLastRead("admin",m.user_id))
-            adminUnreadByUser[m.user_id]=(adminUnreadByUser[m.user_id]||0)+1;
+        for(const row of data||[]){
+          const count=Number(row.unread_count)||0;
+          if(count>0)adminUnreadByUser[row.user_id]=count;
         }
-        setUnreadBadge("adminUnreadBadge",Object.values(adminUnreadByUser).reduce((sum,n)=>sum+n,0));
+        const total=Object.values(adminUnreadByUser).reduce((sum,n)=>sum+n,0);
+        setUnreadBadge("adminUnreadBadge",total);
         renderChatUsers();
         const usersBox=$("adminUsers");
         if(usersBox)usersBox.querySelectorAll(".admin-user").forEach(row=>{
@@ -1655,11 +1662,16 @@ body.hub-stats-view #statsTabView{display:block}
             name.appendChild(badge);
           }
         });
+      }else{
+        console.error("Could not load admin unread counts:",e.message);
       }
       setUnreadBadge("userUnreadBadge",0);
     }else{
-      const {data,error:e}=await client.from("admin_messages").select("sender_id,created_at").eq("user_id",currentUser.id).neq("sender_id",currentUser.id).order("created_at",{ascending:false}).limit(200);
-      if(!e){const n=(data||[]).filter(m=>new Date(m.created_at).getTime()>getLastRead("user",currentUser.id)).length;setUnreadBadge("userUnreadBadge",n);}
+      const {data,error:e}=await client.from("admin_messages").select("id,sender_id").eq("user_id",currentUser.id).neq("sender_id",currentUser.id).order("id",{ascending:false}).limit(500);
+      if(!e){
+        const n=(data||[]).filter(m=>m.sender_id!==currentUser.id).length;
+        setUnreadBadge("userUnreadBadge",n);
+      }
       setUnreadBadge("adminUnreadBadge",0);
     }
     await checkAdminChatNotifications(profile?.role==="admin"?"admin":"user");
@@ -1675,13 +1687,24 @@ body.hub-stats-view #statsTabView{display:block}
   async function loadChat(){
     const box=$("adminChatHistory");
     if(!selectedChatUser){box.textContent="Choose a user to view the conversation.";return;}
-    const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,sender_id,message,created_at").eq("user_id",selectedChatUser.id).order("created_at",{ascending:true}).limit(200);
+    const chatUserId=selectedChatUser.id;
+    // Fetch the newest 200 first, then reverse for chronological display.
+    const {data,error:e}=await client.from("admin_messages").select("id,user_id,admin_id,sender_id,message,created_at").eq("user_id",chatUserId).order("id",{ascending:false}).limit(200);
     if(e){box.textContent="Chat unavailable: "+e.message;return;}
-    const otherSender=selectedChatUser.username||selectedChatUser.email||("User "+String(selectedChatUser.id).slice(0,8));
-    box.innerHTML=(data||[]).map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":otherSender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
-    const incoming=(data||[]).filter(m=>m.sender_id===selectedChatUser.id);
-    if(incoming.length)setLastRead("admin",selectedChatUser.id,Math.max(...incoming.map(m=>new Date(m.created_at).getTime())));
+    const messages=(data||[]).reverse();
+    const otherSender=selectedChatUser.username||selectedChatUser.email||("User "+String(chatUserId).slice(0,8));
+    box.innerHTML=messages.map(m=>'<div class="admin-chat-msg"><small>'+esc(m.sender_id===currentUser?.id?"You":otherSender)+' · '+esc(new Date(m.created_at).toLocaleString())+'</small>'+esc(m.message)+'</div>').join("")||"No messages yet.";
     box.scrollTop=box.scrollHeight;
+    // Only mark incoming messages that were actually loaded into this conversation as read.
+    const incoming=messages.filter(m=>m.sender_id===chatUserId);
+    if(incoming.length){
+      const throughId=Math.max(...incoming.map(m=>Number(m.id)||0));
+      const {error:readError}=await client.rpc("admin_mark_chat_read",{
+        p_user_id:chatUserId,
+        p_through_message_id:throughId
+      });
+      if(readError)console.error("Could not mark admin chat as read:",readError.message);
+    }
     await updateUnreadBadges();
   }
   async function sendChat(){
