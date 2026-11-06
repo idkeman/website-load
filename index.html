@@ -139,7 +139,7 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
 .explore-heading p{margin:0;color:#9eafc6;font-size:13px}
 .explore-spark{font-size:42px;color:#6ed3c2;text-shadow:0 0 25px #53b9ae66;animation:sparkTurn 18s linear infinite}
 @keyframes sparkTurn{to{transform:rotate(360deg)}}
-.explore-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:13px}
+.explore-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
 .explore-card{position:relative;display:flex;align-items:center;gap:13px;min-height:115px;padding:17px;text-align:left;border:1px solid rgba(151,180,211,.16);border-radius:17px;background:linear-gradient(145deg,rgba(24,44,61,.93),rgba(18,31,49,.94));color:#f4f7ff;cursor:pointer;transition:transform .25s ease,border-color .25s ease,background .25s ease;overflow:hidden}
 .explore-card:after{content:"";position:absolute;width:110px;height:110px;right:-38px;bottom:-55px;border-radius:50%;background:var(--glow);filter:blur(2px);opacity:.23;transition:transform .35s ease}
 .explore-card:hover{transform:translateY(-5px);border-color:rgba(114,207,201,.55);background:linear-gradient(145deg,rgba(31,61,75,.97),rgba(24,38,61,.97))}
@@ -149,7 +149,6 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
 .explore-card-copy strong{font-size:13px}.explore-card-copy small{color:#9aacc4;font-size:10px;line-height:1.45}
 .explore-arrow{position:relative;z-index:1;margin-left:auto;color:#8ccfc6;font-size:18px}
 .games-card{--glow:#38b6a2}.watch-card{--glow:#9b72d5}.make-card{--glow:#5598df}.tools-card{--glow:#d49c62}
-
 .browser-panel{margin-top:44px}
 .site-footer{border-top:1px solid rgba(151,180,211,.12);margin-top:24px}
 @media(max-width:1000px){.explore-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1274,7 +1273,6 @@ body.hub-stats-view #statsTabView{display:block}
                 <option value="https://idkeman.github.io/Google/">Google</option>
                 <option value="https://idkeman.github.io/retro-bowl-modded/">Retro Bowl Modded</option>
                 <option value="https://idkeman.github.io/adarkroom/">A Dark Room</option>
-                <option value="https://idkeman.github.io/Something-something-downloaded-game-hub/">Something Something Downloaded Game Hub</option>
               </optgroup>
               <optgroup label="Working Proxies">
                 <option value="https://pgis.x10.mx/">PGIS 2</option>
