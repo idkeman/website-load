@@ -149,12 +149,6 @@ body:after{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;ba
 .explore-card-copy strong{font-size:13px}.explore-card-copy small{color:#9aacc4;font-size:10px;line-height:1.45}
 .explore-arrow{position:relative;z-index:1;margin-left:auto;color:#8ccfc6;font-size:18px}
 .games-card{--glow:#38b6a2}.watch-card{--glow:#9b72d5}.make-card{--glow:#5598df}.tools-card{--glow:#d49c62}
-.goon-card{--glow:#ff8a18}
-#goonFlashOverlay{position:fixed;inset:0;z-index:50000;display:grid;place-items:center;background:#000;opacity:0;visibility:hidden;pointer-events:none}
-#goonFlashOverlay.active{visibility:visible;animation:goonFlashCycle 2s ease-in-out forwards}
-#goonFlashOverlay .goon-p{font-family:Arial Black,Impact,sans-serif;font-size:min(62vw,58vh);font-weight:1000;line-height:1;color:#ff8a00;-webkit-text-stroke:2px #ffc02e;text-shadow:-8px 8px 0 #c13b00,-14px 14px 0 #812000,0 0 22px #ff8a00aa;transform:perspective(500px) rotateY(-8deg)}
-@keyframes goonFlashCycle{0%{opacity:0}50%{opacity:1}100%{opacity:0;visibility:hidden}}
-@media(prefers-reduced-motion:reduce){#goonFlashOverlay.active{animation-duration:2s!important}}
 
 .browser-panel{margin-top:44px}
 .site-footer{border-top:1px solid rgba(151,180,211,.12);margin-top:24px}
@@ -1321,7 +1315,6 @@ body.hub-stats-view #statsTabView{display:block}
           <button class="explore-card watch-card" type="button" data-explore="Movies"><span class="explore-art">✦</span><span class="explore-card-copy"><strong>Watch & unwind</strong><small>Movies, anime, and things to explore</small></span><span class="explore-arrow">↗</span></button>
           <button class="explore-card make-card" type="button" data-explore="My own creations"><span class="explore-art">🛠</span><span class="explore-card-copy"><strong>Made around here</strong><small>Games and projects built by me</small></span></button>
           <button class="explore-card tools-card" type="button" data-explore="Proxies"><span class="explore-art">🧭</span><span class="explore-card-copy"><strong>Find useful tools</strong><small>Proxies, helpers, and other discoveries</small></span><span class="explore-arrow">↗</span></button>
-          <button class="explore-card goon-card" id="goonFlashButton" type="button"><span class="explore-art">🅿️</span><span class="explore-card-copy"><strong>Gooning</strong><small>A surprise P moment</small></span><span class="explore-arrow">↗</span></button>
         </div>
       </section>
 
@@ -1332,8 +1325,6 @@ body.hub-stats-view #statsTabView{display:block}
     </main>
     <footer class="site-footer"><span>iFrame Abuse · Web Access Hub</span><span>Built to make your next destination easier to find.</span></footer>
   </div>
-
-  <div id="goonFlashOverlay" aria-hidden="true"><div class="goon-p">P</div></div>
 
   <section id="recordingSection">
     <h2>Site Recording</h2>
@@ -2472,28 +2463,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
-</script>
-<script>
-(function(){
-  const button=document.getElementById("goonFlashButton");
-  const overlay=document.getElementById("goonFlashOverlay");
-  if(!button||!overlay)return;
-  let resetTimer;
-  function playGoonFlash(){
-    clearTimeout(resetTimer);
-    overlay.classList.remove("active");
-    void overlay.offsetWidth;
-    overlay.classList.add("active");
-    resetTimer=setTimeout(()=>overlay.classList.remove("active"),2050);
-  }
-  button.addEventListener("click",playGoonFlash);
-  overlay.addEventListener("animationend",event=>{
-    if(event.animationName==="goonFlashCycle")overlay.classList.remove("active");
-  });
-  document.addEventListener("keydown",event=>{
-    if(event.key==="Escape")overlay.classList.remove("active");
-  });
-})();
 </script>
 </body>
 </html>
