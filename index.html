@@ -2298,28 +2298,6 @@ function changeIframeSource() {
     <iframe src="${safeUrl}" allowfullscreen></iframe>
 
 <!-- The destination page is loaded directly in the iframe. -->
-<script>
-(function(){
-  const button=document.getElementById("goonFlashButton");
-  const overlay=document.getElementById("goonFlashOverlay");
-  if(!button||!overlay)return;
-  let resetTimer;
-  function playGoonFlash(){
-    clearTimeout(resetTimer);
-    overlay.classList.remove("active");
-    void overlay.offsetWidth;
-    overlay.classList.add("active");
-    resetTimer=setTimeout(()=>overlay.classList.remove("active"),2050);
-  }
-  button.addEventListener("click",playGoonFlash);
-  overlay.addEventListener("animationend",event=>{
-    if(event.animationName==="goonFlashCycle")overlay.classList.remove("active");
-  });
-  document.addEventListener("keydown",event=>{
-    if(event.key==="Escape")overlay.classList.remove("active");
-  });
-})();
-</script>
 </body>
 </html>`;
 
@@ -2493,6 +2471,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+</script>
+<script>
+(function(){
+  const button=document.getElementById("goonFlashButton");
+  const overlay=document.getElementById("goonFlashOverlay");
+  if(!button||!overlay)return;
+  let resetTimer;
+  function playGoonFlash(){
+    clearTimeout(resetTimer);
+    overlay.classList.remove("active");
+    void overlay.offsetWidth;
+    overlay.classList.add("active");
+    resetTimer=setTimeout(()=>overlay.classList.remove("active"),2050);
+  }
+  button.addEventListener("click",playGoonFlash);
+  overlay.addEventListener("animationend",event=>{
+    if(event.animationName==="goonFlashCycle")overlay.classList.remove("active");
+  });
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape")overlay.classList.remove("active");
+  });
+})();
 </script>
 </body>
 </html>
