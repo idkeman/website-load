@@ -1877,21 +1877,51 @@ body.hub-stats-view #statsTabView{display:block}
     }
   }
   async function loadApprovedRecommendations(){
-    const presets=$("presets");if(!presets)return;
+    const presets=$("presets");if(!presets||!client)return;
+    const categoryLabels={
+      "Games":"🎮 Games",
+      "Study":"📚 Study",
+      "Movies & Misc":"🎬 Movies & Misc",
+      "Proxies":"🔗 Proxies",
+      "My own creations!":"My own creations!",
+      "Working Proxies":"Working Proxies",
+      "Scratch":"Scratch"
+    };
+    const normalizeUrl=value=>{
+      try{return new URL(value).href.toLowerCase();}
+      catch(_){return String(value||"").trim().toLowerCase();}
+    };
     try{
-      const {data,error}=await client.rpc("list_approved_website_recommendations");
-      if(error){console.warn("Approved recommendations could not be loaded:",error.message);return;}
-      const sections=["🎮 Games","🎬 Movies & Misc","🔗 Proxies","My own creations!","Working Proxies","Scratch"];
+      const {data,error}=await client.from("shared_website_presets")
+        .select("id,label,website_url,category")
+        .eq("is_active",true)
+        .order("category",{ascending:true})
+        .order("label",{ascending:true});
+      if(error){console.warn("Shared website presets could not be loaded:",error.message);return;}
       const groups=[...presets.querySelectorAll("optgroup")];
       (data||[]).forEach(rec=>{
-        const group=groups.find(item=>item.label===rec.section);
-        if(!group||group.querySelector('option[data-recommendation-id="'+rec.id+'"]'))return;
+        const label=categoryLabels[rec.category];
+        if(!label||!rec.website_url)return;
+        let group=groups.find(item=>item.label===label);
+        if(!group){
+          group=document.createElement("optgroup");
+          group.label=label;
+          presets.appendChild(group);
+          groups.push(group);
+        }
+        const urlKey=normalizeUrl(rec.website_url);
+        const existing=[...presets.options].find(option=>option.value&&normalizeUrl(option.value)===urlKey);
+        if(existing){
+          existing.dataset.sharedWebsiteId=String(rec.id);
+          return;
+        }
         const option=document.createElement("option");
-        option.value=rec.website_url;option.textContent=new URL(rec.website_url).hostname;
-        option.dataset.recommendationId=String(rec.id);
+        option.value=rec.website_url;
+        option.textContent=rec.label||new URL(rec.website_url).hostname;
+        option.dataset.sharedWebsiteId=String(rec.id);
         group.appendChild(option);
       });
-    }catch(error){console.warn("Approved recommendation loading failed:",error);}
+    }catch(error){console.warn("Shared website preset loading failed:",error);}
   }
   async function loadLogs(){
     const box=$("adminLogs");
@@ -1940,6 +1970,9 @@ body.hub-stats-view #statsTabView{display:block}
     $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();await loadRecommendations();};
     $("recommendationsRefresh").onclick=loadRecommendations;
     loadApprovedRecommendations();
+    client.channel("website-load-shared-presets")
+      .on("postgres_changes",{event:"*",schema:"public",table:"shared_website_presets"},()=>loadApprovedRecommendations())
+      .subscribe();
     $("adminChatSend").onclick=sendChat;
     $("adminChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}};
     $("userChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}show("userChatOverlay");await loadUserChat();};
