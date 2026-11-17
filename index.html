@@ -1913,6 +1913,8 @@ body.hub-stats-view #statsTabView{display:block}
         const existing=[...presets.options].find(option=>option.value&&normalizeUrl(option.value)===urlKey);
         if(existing){
           existing.dataset.sharedWebsiteId=String(rec.id);
+          existing.textContent=rec.label||existing.textContent;
+          if(existing.parentElement!==group)group.appendChild(existing);
           return;
         }
         const option=document.createElement("option");
