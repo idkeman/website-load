@@ -4,7 +4,7 @@ const URL="https://dkwmkvruzebnqlmvwzhy.supabase.co";
 const KEY="sb_publishable_Tur9X4MaQjH__4DnEtwAAQ_Xy9xVl5P";
 const TABLE="hub_analytics_events";
 const $=id=>document.getElementById(id);
-const root=$("hubStatsView");
+const root=$("statsTabView");
 if(!root||!window.supabase)return;
 const db=window.supabase.createClient(URL,KEY);
 const now=()=>new Date();
