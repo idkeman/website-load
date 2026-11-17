@@ -1850,15 +1850,48 @@ body.hub-stats-view #statsTabView{display:block}
         return;
       }
       if(!data||!data.length){box.textContent="No website recommendations yet.";return;}
+      const sections=["🎮 Games","🎬 Movies & Misc","🔗 Proxies","My own creations!","Working Proxies","Scratch"];
       box.innerHTML=data.map(rec=>{
         const safeUrl=esc(rec.website_url);
         const sender=rec.username&&rec.username!=="Unknown account"?rec.username:(rec.email||rec.username||"Unknown account");
-        return '<div class="admin-chat-user" style="display:block"><strong>'+esc(sender)+'</strong><small>'+esc(new Date(rec.created_at).toLocaleString())+' · '+esc(rec.status)+'</small><p style="overflow-wrap:anywhere;margin:8px 0"><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="color:#9fc7ff">'+safeUrl+'</a></p><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(rec.notes||"No notes provided.")+'</div></div>';
+        const sectionOptions=sections.map(section=>'<option value="'+esc(section)+'" '+(rec.section===section?'selected':'')+'>'+esc(section)+'</option>').join("");
+        const action=rec.status==="added"
+          ? '<p style="color:#8ee6ae;font-weight:700">✓ Accepted into '+esc(rec.section||"the Hub")+'</p>'
+          : rec.status==="declined"
+            ? '<p style="color:#ff9b9b">Declined</p>'
+            : '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><select class="recommend-section-select" data-recommendation-id="'+Number(rec.id)+'" style="flex:1;min-width:180px;padding:9px;border-radius:7px;background:#0a1425;color:#fff;border:1px solid #7890ff">'+sectionOptions+'</select><button type="button" class="recommend-accept-button" data-recommendation-id="'+Number(rec.id)+'">Accept & Add</button></div>';
+        return '<div class="admin-chat-user" style="display:block;margin-bottom:10px"><strong>'+esc(sender)+'</strong><small>'+esc(new Date(rec.created_at).toLocaleString())+' · '+esc(rec.status)+'</small><p style="overflow-wrap:anywhere;margin:8px 0"><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="color:#9fc7ff">'+safeUrl+'</a></p><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(rec.notes||"No notes provided.")+'</div>'+action+'</div>';
       }).join("");
+      box.querySelectorAll(".recommend-accept-button").forEach(button=>button.addEventListener("click",async()=>{
+        const id=Number(button.dataset.recommendationId);
+        const select=box.querySelector('.recommend-section-select[data-recommendation-id="'+id+'"]');
+        if(!select)return;
+        button.disabled=true;button.textContent="Adding...";
+        const {error}=await client.rpc("admin_accept_website_recommendation",{p_recommendation_id:id,p_section:select.value});
+        if(error){button.disabled=false;button.textContent="Accept & Add";alert("Could not accept recommendation: "+error.message);return;}
+        await Promise.all([loadRecommendations(),loadApprovedRecommendations()]);
+      }));
     }catch(err){
       console.error("Recommendation inbox load crashed:",err);
       box.textContent="Recommendations could not be loaded. Check the browser console for details.";
     }
+  }
+  async function loadApprovedRecommendations(){
+    const presets=$("presets");if(!presets)return;
+    try{
+      const {data,error}=await client.rpc("list_approved_website_recommendations");
+      if(error){console.warn("Approved recommendations could not be loaded:",error.message);return;}
+      const sections=["🎮 Games","🎬 Movies & Misc","🔗 Proxies","My own creations!","Working Proxies","Scratch"];
+      const groups=[...presets.querySelectorAll("optgroup")];
+      (data||[]).forEach(rec=>{
+        const group=groups.find(item=>item.label===rec.section);
+        if(!group||group.querySelector('option[data-recommendation-id="'+rec.id+'"]'))return;
+        const option=document.createElement("option");
+        option.value=rec.website_url;option.textContent=new URL(rec.website_url).hostname;
+        option.dataset.recommendationId=String(rec.id);
+        group.appendChild(option);
+      });
+    }catch(error){console.warn("Approved recommendation loading failed:",error);}
   }
   async function loadLogs(){
     const box=$("adminLogs");
@@ -1906,6 +1939,7 @@ body.hub-stats-view #statsTabView{display:block}
     $("accountButton").onclick=()=>currentUser?confirm("Log out of "+(currentUser.email||"this account")+"?")&&client.auth.signOut():openAuth(false);
     $("adminButton").onclick=async()=>{show("adminOverlay");await loadUsers();await loadLogs();await loadRecommendations();};
     $("recommendationsRefresh").onclick=loadRecommendations;
+    loadApprovedRecommendations();
     $("adminChatSend").onclick=sendChat;
     $("adminChatInput").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}};
     $("userChatButton").onclick=async()=>{if(!currentUser){openAuth(false);return;}show("userChatOverlay");await loadUserChat();};
